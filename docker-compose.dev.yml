@@ -1,3 +1,6 @@
+# Docker Compose alternativo para ambientes com restrições de rede
+# Use este arquivo se receber erro: "failed to add the host <=> sandbox pair interfaces"
+
 services:
   db:
     image: postgres:16
