@@ -1,2 +1,2 @@
-# back_erp
+# nina_erp
 Gestor para empresas 
