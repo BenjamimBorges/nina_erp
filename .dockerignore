@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.git/
+**/*.user
+**/*.suo
+**/*.userosscache
+**/*.sln.docstates
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/ERP.Database/migrations/*.sql
+.env
+Dockerfile
+docker-compose.yml
+**/*.log

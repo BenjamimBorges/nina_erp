@@ -6,5 +6,6 @@ namespace ERP.Core.Entities
         public string TaxId { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public ICollection<User> Users { get; set; } = new List<User>();
+        public ICollection<Client> Clients { get; set; } = new List<Client>();
     }
 }
