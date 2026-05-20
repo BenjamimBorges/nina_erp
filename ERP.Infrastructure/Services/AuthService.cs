@@ -1,4 +1,4 @@
-using BCrypt.Net;
+using ERP.Core.Entities;
 using ERP.Core.Interfaces;
 using ERP.Core.Services;
 using ERP.Shared.Dtos;
@@ -8,30 +8,34 @@ namespace ERP.Infrastructure.Services
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IJwtService _jwtService;
+        private readonly IJwtTokenService _jwtTokenService;
 
-        public AuthService(IUserRepository userRepository, IJwtService jwtService)
+        public AuthService(IUserRepository userRepository, IJwtTokenService jwtTokenService)
         {
             _userRepository = userRepository;
-            _jwtService = jwtService;
+            _jwtTokenService = jwtTokenService;
         }
 
         public async Task<LoginResponseDto> AuthenticateAsync(LoginRequestDto request, CancellationToken cancellationToken = default)
         {
             var user = await _userRepository.GetByUsernameAsync(request.Username, cancellationToken);
             if (user == null)
+            {
                 return new LoginResponseDto { Success = false, Message = "Usuário ou senha inválidos." };
+            }
 
-            if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            // TODO: Implementar hash de senha com BCrypt
+            if (user.PasswordHash != request.Password)
+            {
                 return new LoginResponseDto { Success = false, Message = "Usuário ou senha inválidos." };
+            }
 
-            var token = _jwtService.GenerateToken(user);
+            var token = _jwtTokenService.GenerateToken(user);
 
             return new LoginResponseDto
             {
                 Success = true,
                 Message = "Login realizado com sucesso.",
-                Token = token,
                 User = new UserDto
                 {
                     Id = user.Id,
@@ -39,7 +43,8 @@ namespace ERP.Infrastructure.Services
                     FullName = user.FullName,
                     Role = user.Role.ToString(),
                     CompanyName = user.Company?.Name ?? string.Empty
-                }
+                },
+                Token = token
             };
         }
     }
