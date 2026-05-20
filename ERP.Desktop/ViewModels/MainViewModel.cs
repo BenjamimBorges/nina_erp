@@ -1,128 +1,119 @@
-using ERP.Desktop.Services;
+using ERP.Shared.Dtos;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
+using System.Net.Http.Json;
 
 namespace ERP.Desktop.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        private readonly ApiService _api;
-
         private string _username = string.Empty;
         private string _password = string.Empty;
         private string _statusMessage = string.Empty;
-        private bool _isBusy;
-
-        // ── Propriedades ─────────────────────────────────────────────────
+        private bool _isLoading = false;
+        private const string ApiBaseUrl = "http://localhost:5000/";
 
         public string Username
         {
             get => _username;
-            set => SetField(ref _username, value);
+            set
+            {
+                _username = value;
+                OnPropertyChanged(nameof(Username));
+                OnPropertyChanged(nameof(IsFormValid));
+            }
         }
 
         public string Password
         {
             get => _password;
-            set => SetField(ref _password, value);
+            set
+            {
+                _password = value;
+                OnPropertyChanged(nameof(Password));
+                OnPropertyChanged(nameof(IsFormValid));
+            }
         }
 
         public string StatusMessage
         {
             get => _statusMessage;
-            set => SetField(ref _statusMessage, value);
+            set
+            {
+                _statusMessage = value;
+                OnPropertyChanged(nameof(StatusMessage));
+            }
         }
 
-        public bool IsBusy
+        public bool IsLoading
         {
-            get => _isBusy;
-            set => SetField(ref _isBusy, value);
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged(nameof(IsLoading));
+                OnPropertyChanged(nameof(IsFormValid));
+            }
         }
 
-        // Evento disparado após login bem-sucedido para a View abrir a próxima janela
-        public event Action<ApiService>? LoginSucceeded;
-
-        // ── Comandos ─────────────────────────────────────────────────────
-
-        public ICommand LoginCommand { get; }
-
-        public MainViewModel()
-        {
-            _api = new ApiService();
-            LoginCommand = new RelayCommand(
-                async _ => await LoginAsync(),
-                _ => !IsBusy);
-        }
-
-        // ── Login ────────────────────────────────────────────────────────
+        public bool IsFormValid => !string.IsNullOrWhiteSpace(Username) &&
+                                   !string.IsNullOrWhiteSpace(Password) &&
+                                   !IsLoading;
 
         public async Task LoginAsync()
         {
-            if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
+            // Validação de entrada
+            if (string.IsNullOrWhiteSpace(Username))
             {
-                StatusMessage = "Informe usuário e senha.";
+                StatusMessage = "⚠️  Por favor, digite seu usuário.";
                 return;
             }
 
-            IsBusy = true;
-            StatusMessage = "Autenticando...";
+            if (string.IsNullOrWhiteSpace(Password))
+            {
+                StatusMessage = "⚠️  Por favor, digite sua senha.";
+                return;
+            }
 
             try
             {
-                var result = await _api.LoginAsync(Username, Password);
+                IsLoading = true;
+                StatusMessage = "🔐 Conectando ao servidor...";
 
-                if (result.Success)
+                using var client = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
+                var request = new LoginRequestDto { Username = Username, Password = Password };
+
+                var response = await client.PostAsJsonAsync("api/auth/login", request);
+                var result = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+
+                if (result?.Success == true)
                 {
-                    StatusMessage = string.Empty;
-                    LoginSucceeded?.Invoke(_api);
+                    StatusMessage = $"✅ Bem-vindo {result.User?.FullName}";
+                    // TODO: Navegar para próxima tela após sucesso
                 }
                 else
                 {
-                    StatusMessage = result.Message;
+                    StatusMessage = result?.Message ?? "❌ Falha ao autenticar.";
                 }
+            }
+            catch (HttpRequestException ex)
+            {
+                StatusMessage = $"❌ Erro de conexão: O servidor não está acessível ({ex.Message})";
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Erro de conexão: {ex.Message}";
+                StatusMessage = $"❌ Erro: {ex.Message}";
             }
             finally
             {
-                IsBusy = false;
+                IsLoading = false;
             }
         }
 
-        // ── INotifyPropertyChanged ───────────────────────────────────────
-
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private void SetField<T>(ref T field, T value, [CallerMemberName] string? name = null)
+        protected virtual void OnPropertyChanged(string propertyName)
         {
-            if (EqualityComparer<T>.Default.Equals(field, value)) return;
-            field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-    }
-
-    // ── RelayCommand helper ──────────────────────────────────────────────
-
-    public class RelayCommand : ICommand
-    {
-        private readonly Func<object?, Task> _execute;
-        private readonly Predicate<object?>? _canExecute;
-
-        public RelayCommand(Func<object?, Task> execute, Predicate<object?>? canExecute = null)
-        {
-            _execute = execute;
-            _canExecute = canExecute;
-        }
-
-        public bool CanExecute(object? parameter) => _canExecute?.Invoke(parameter) ?? true;
-        public async void Execute(object? parameter) => await _execute(parameter);
-        public event EventHandler? CanExecuteChanged
-        {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
