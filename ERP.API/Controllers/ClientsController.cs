@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ClientsController : ControllerBase
     {
         private readonly IUnitOfWork _uow;
