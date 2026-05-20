@@ -1,4 +1,3 @@
-using ERP.Desktop.Services;
 using ERP.Desktop.ViewModels;
 using System.Windows;
 
@@ -14,21 +13,24 @@ namespace ERP.Desktop
             _viewModel = new MainViewModel();
             DataContext = _viewModel;
 
-            // Quando o login for bem-sucedido, abre o dashboard e fecha o login
-            _viewModel.LoginSucceeded += OpenDashboard;
-        }
-
-        private void OpenDashboard(ApiService api)
-        {
-            var dashboard = new DashboardWindow(api);
-            dashboard.Show();
-            Close();
+            // Inscrever-se no evento de sucesso de login
+            _viewModel.LoginSuccess += OnLoginSuccess;
         }
 
         private async void OnLoginClicked(object sender, RoutedEventArgs e)
         {
             _viewModel.Password = PasswordBox.Password;
             await _viewModel.LoginAsync();
+        }
+
+        private void OnLoginSuccess(string userFullName, string token)
+        {
+            // Abrir Dashboard
+            DashboardWindow dashboard = new DashboardWindow(userFullName, token);
+            dashboard.Show();
+
+            // Fechar janela de login
+            Close();
         }
     }
 }

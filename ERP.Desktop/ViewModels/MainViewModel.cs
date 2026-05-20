@@ -1,6 +1,8 @@
 using ERP.Shared.Dtos;
 using System.ComponentModel;
 using System.Net.Http.Json;
+using System.Windows;
+using ERP.Desktop.Services;
 
 namespace ERP.Desktop.ViewModels
 {
@@ -11,6 +13,9 @@ namespace ERP.Desktop.ViewModels
         private string _statusMessage = string.Empty;
         private bool _isLoading = false;
         private const string ApiBaseUrl = "http://localhost:5000/";
+        private readonly ITokenService _tokenService;
+
+        public event Action<string, string>? LoginSuccess;
 
         public string Username
         {
@@ -59,6 +64,11 @@ namespace ERP.Desktop.ViewModels
                                    !string.IsNullOrWhiteSpace(Password) &&
                                    !IsLoading;
 
+        public MainViewModel()
+        {
+            _tokenService = new TokenService();
+        }
+
         public async Task LoginAsync()
         {
             // Validação de entrada
@@ -85,10 +95,12 @@ namespace ERP.Desktop.ViewModels
                 var response = await client.PostAsJsonAsync("api/auth/login", request);
                 var result = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
 
-                if (result?.Success == true)
+                if (result?.Success == true && !string.IsNullOrEmpty(result.Token))
                 {
+                    _tokenService.SaveToken(result.Token);
+
                     StatusMessage = $"✅ Bem-vindo {result.User?.FullName}";
-                    // TODO: Navegar para próxima tela após sucesso
+                    LoginSuccess?.Invoke(result.User?.FullName ?? "Usuário", result.Token);
                 }
                 else
                 {
@@ -116,4 +128,5 @@ namespace ERP.Desktop.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
+}
 }
