@@ -3,6 +3,7 @@ namespace ERP.Core.Interfaces
     public interface IUnitOfWork
     {
         IUserRepository Users { get; }
+        ICompanyRepository Companies { get; }
         IClientRepository Clients { get; }
         IProductRepository Products { get; }
         IStockRepository Stocks { get; }

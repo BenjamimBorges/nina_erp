@@ -1,10 +1,12 @@
 using ERP.Core.Interfaces;
 using ERP.Core.Entities;
 using ERP.Shared.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ClientsController : ControllerBase
