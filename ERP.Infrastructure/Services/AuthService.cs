@@ -1,4 +1,3 @@
-using ERP.Core.Entities;
 using ERP.Core.Interfaces;
 using ERP.Core.Services;
 using ERP.Shared.Dtos;
@@ -20,15 +19,10 @@ namespace ERP.Infrastructure.Services
         {
             var user = await _userRepository.GetByUsernameAsync(request.Username, cancellationToken);
             if (user == null)
-            {
                 return new LoginResponseDto { Success = false, Message = "Usuário ou senha inválidos." };
-            }
 
-            // TODO: Implementar hash de senha com BCrypt
-            if (user.PasswordHash != request.Password)
-            {
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return new LoginResponseDto { Success = false, Message = "Usuário ou senha inválidos." };
-            }
 
             var token = _jwtTokenService.GenerateToken(user);
 
@@ -36,6 +30,7 @@ namespace ERP.Infrastructure.Services
             {
                 Success = true,
                 Message = "Login realizado com sucesso.",
+                Token = token,
                 User = new UserDto
                 {
                     Id = user.Id,
@@ -43,8 +38,7 @@ namespace ERP.Infrastructure.Services
                     FullName = user.FullName,
                     Role = user.Role.ToString(),
                     CompanyName = user.Company?.Name ?? string.Empty
-                },
-                Token = token
+                }
             };
         }
     }

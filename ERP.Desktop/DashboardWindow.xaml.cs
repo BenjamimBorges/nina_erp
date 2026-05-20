@@ -1,4 +1,5 @@
 using ERP.Desktop.Services;
+using ERP.Desktop.ViewModels;
 using System.Windows;
 
 namespace ERP.Desktop
@@ -11,7 +12,7 @@ namespace ERP.Desktop
         {
             InitializeComponent();
             _api = api;
-            UserInfoText.Text = $"Olá, {_api.CurrentUser?.FullName} ({_api.CurrentUser?.Role})";
+            DataContext = new DashboardViewModel(api);
             _ = LoadAllAsync();
         }
 
@@ -50,7 +51,7 @@ namespace ERP.Desktop
             var loginWindow = new MainWindow();
             loginWindow.Show();
             App.Current.MainWindow = loginWindow;
-            this.Close();
+            Close();
         }
     }
 }

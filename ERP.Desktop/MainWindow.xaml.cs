@@ -1,3 +1,4 @@
+using ERP.Desktop.Services;
 using ERP.Desktop.ViewModels;
 using System.Windows;
 
@@ -12,24 +13,21 @@ namespace ERP.Desktop
             InitializeComponent();
             _viewModel = new MainViewModel();
             DataContext = _viewModel;
-
-            // Inscrever-se no evento de sucesso de login
             _viewModel.LoginSuccess += OnLoginSuccess;
         }
 
         private async void OnLoginClicked(object sender, RoutedEventArgs e)
         {
-            _viewModel.Password = PasswordBox.Password;
-            await _viewModel.LoginAsync();
+            await _viewModel.LoginAsync(PasswordBox.Password);
         }
 
-        private void OnLoginSuccess(string userFullName, string token)
-        {
-            // Abrir Dashboard
-            DashboardWindow dashboard = new DashboardWindow(userFullName, token);
-            dashboard.Show();
+        private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e) { }
 
-            // Fechar janela de login
+        private void OnLoginSuccess(ApiService api)
+        {
+            var dashboard = new DashboardWindow(api);
+            dashboard.Show();
+            App.Current.MainWindow = dashboard;
             Close();
         }
     }

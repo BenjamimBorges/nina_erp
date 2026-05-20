@@ -1,47 +1,32 @@
-using System.ComponentModel;
 using ERP.Desktop.Services;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace ERP.Desktop.ViewModels
 {
     public class DashboardViewModel : INotifyPropertyChanged
     {
+        private readonly ApiService _api;
         private string _userGreeting = string.Empty;
-        private string _token = string.Empty;
-        private readonly ITokenService _tokenService;
 
         public string UserGreeting
         {
             get => _userGreeting;
-            set
-            {
-                _userGreeting = value;
-                OnPropertyChanged(nameof(UserGreeting));
-            }
+            set => SetField(ref _userGreeting, value);
         }
 
-        public string Token
+        public DashboardViewModel(ApiService api)
         {
-            get => _token;
-            set => _token = value;
-        }
-
-        public DashboardViewModel(string userFullName, string token)
-        {
-            _tokenService = new TokenService();
-            UserGreeting = $"Bem-vindo, {userFullName}! 👋";
-            Token = token;
-        }
-
-        public void Logout()
-        {
-            _tokenService.ClearToken();
+            _api = api;
+            UserGreeting = $"Olá, {api.CurrentUser?.FullName} ({api.CurrentUser?.Role}) 👋";
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
+        private void SetField<T>(ref T field, T value, [CallerMemberName] string? name = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (EqualityComparer<T>.Default.Equals(field, value)) return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
 }

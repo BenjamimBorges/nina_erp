@@ -4,27 +4,24 @@
         Title="Nina ERP — Dashboard"
         Height="600" Width="900"
         WindowStartupLocation="CenterScreen">
-
     <DockPanel>
         <!-- Barra superior -->
         <Border DockPanel.Dock="Top" Background="#4f46e5" Padding="16,10">
             <DockPanel>
                 <TextBlock Text="Nina ERP" FontSize="18" FontWeight="Bold"
                            Foreground="White" VerticalAlignment="Center"/>
-                <TextBlock x:Name="UserInfoText" DockPanel.Dock="Right"
-                           Foreground="#c7d2fe" VerticalAlignment="Center"
-                           HorizontalAlignment="Right"/>
                 <Button Content="Sair" DockPanel.Dock="Right"
                         Margin="0,0,12,0" Padding="10,4"
                         Background="#6d5fd4" Foreground="White" BorderThickness="0"
                         Click="OnLogoutClicked"/>
+                <TextBlock Text="{Binding UserGreeting}" DockPanel.Dock="Right"
+                           Foreground="#c7d2fe" VerticalAlignment="Center"
+                           HorizontalAlignment="Right"/>
             </DockPanel>
         </Border>
 
-        <!-- Conteúdo principal em abas -->
+        <!-- Abas -->
         <TabControl Margin="8">
-
-            <!-- Aba Clientes -->
             <TabItem Header="Clientes">
                 <DockPanel Margin="8">
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
@@ -45,7 +42,6 @@
                 </DockPanel>
             </TabItem>
 
-            <!-- Aba Produtos -->
             <TabItem Header="Produtos">
                 <DockPanel Margin="8">
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
@@ -66,7 +62,6 @@
                 </DockPanel>
             </TabItem>
 
-            <!-- Aba Estoque -->
             <TabItem Header="Estoque">
                 <DockPanel Margin="8">
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
@@ -84,7 +79,6 @@
                     </DataGrid>
                 </DockPanel>
             </TabItem>
-
         </TabControl>
     </DockPanel>
 </Window>

@@ -1,5 +1,4 @@
 using ERP.Core.Entities;
-using ERP.Infrastructure.Data;
 using ERP.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,15 +8,14 @@ namespace ERP.Infrastructure.Data
     {
         /// <summary>
         /// Cria empresa demo e usuário admin padrão se ainda não existirem.
-        /// Chamado uma vez na inicialização da aplicação.
+        /// Requer que o schema SQL já tenha sido aplicado (001_initial_schema.sql).
         /// </summary>
         public static async Task SeedAsync(ApplicationDbContext context)
         {
-            // Garante que o banco existe e as migrations foram aplicadas
-            await context.Database.MigrateAsync();
-
             // Empresa demo
-            var company = await context.Companies.FirstOrDefaultAsync(c => c.TaxId == "00.000.000/0001-00");
+            var company = await context.Companies
+                .FirstOrDefaultAsync(c => c.TaxId == "00.000.000/0001-00");
+
             if (company == null)
             {
                 company = new Company
