@@ -2,10 +2,10 @@ using NinaERP.Domain.Common;
 
 namespace NinaERP.Domain.Entities;
 
-public class SaleItem : BaseEntity
+public class PurchaseItem : BaseEntity
 {
-    public Guid SaleId { get; set; }
-    public Sale? Sale { get; set; }
+    public Guid PurchaseId { get; set; }
+    public Purchase? Purchase { get; set; }
 
     public Guid ProductId { get; set; }
     public Product? Product { get; set; }
@@ -14,6 +14,4 @@ public class SaleItem : BaseEntity
     public decimal UnitPrice { get; set; }
     public decimal Discount { get; set; }
     public decimal Total => (Qty * UnitPrice) - Discount;
-    public string Cfop { get; set; } = string.Empty;
-    public decimal IcmsValue { get; set; }
 }

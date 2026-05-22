@@ -4,6 +4,9 @@ namespace NinaERP.Domain.Entities;
 
 public class Supplier : BaseEntity
 {
+    public Guid CompanyId { get; set; }
+    public Company? Company { get; set; }
+
     public string Name { get; set; } = string.Empty;
     public string Document { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
@@ -11,5 +14,6 @@ public class Supplier : BaseEntity
     public string Address { get; set; } = string.Empty;
     public string ContactPerson { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
-    public Company? Company { get; set; }
+
+    public ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
 }
