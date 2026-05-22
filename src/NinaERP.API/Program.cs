@@ -2,7 +2,9 @@ using NinaERP.Application;
 using NinaERP.API.Middleware;
 using NinaERP.Infrastructure;
 using NinaERP.Infrastructure.Auth;
+using NinaERP.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
@@ -31,7 +33,7 @@ builder.Services.AddSwaggerGen(c =>
 
 // Application + Infrastructure (Clean Architecture)
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // JWT
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
@@ -40,14 +42,24 @@ var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt => opt.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true, ValidateAudience = true,
-        ValidateLifetime = true, ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings.Issuer, ValidAudience = jwtSettings.Audience,
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
     });
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+// Apply migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<NinaErpDbContext>();
+    dbContext.Database.Migrate();
+}
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseSwagger();

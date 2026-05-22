@@ -1,0 +1,182 @@
+
+<div id="erd"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+const diagram = `erDiagram
+  COMPANIES ||--o{ USERS : has
+  COMPANIES ||--o{ CLIENTS : has
+  COMPANIES ||--o{ PRODUCTS : has
+  COMPANIES ||--o{ SALES : has
+  COMPANIES ||--o{ PURCHASES : has
+
+  PRODUCTS ||--o{ PRODUCT_TAXES : has
+  PRODUCTS ||--o{ STOCK_MOVEMENTS : in
+  PRODUCTS ||--o{ SALE_ITEMS : in
+  PRODUCTS ||--o{ PURCHASE_ITEMS : in
+
+  CLIENTS ||--o{ SALES : makes
+
+  SALES ||--|{ SALE_ITEMS : contains
+  SALES ||--o| INVOICES : generates
+  SALES ||--|{ PAYMENTS : has
+
+  PURCHASES ||--|{ PURCHASE_ITEMS : contains
+  PURCHASES ||--o| INVOICES : generates
+
+  SUPPLIERS ||--o{ PURCHASES : supplies
+
+  INVOICES ||--o{ INVOICE_EVENTS : has
+
+  COMPANIES {
+    uuid id PK
+    string cnpj UK
+    string ie
+    string name
+    string fantasy_name
+    string address
+    string cert_pfx_path
+    string cert_password_hash
+    int fiscal_regime
+    timestamp created_at
+  }
+
+  PRODUCTS {
+    uuid id PK
+    uuid company_id FK
+    string sku UK
+    string name
+    string ncm
+    string cest
+    string unit
+    decimal price_sale
+    decimal price_cost
+    decimal cost_average
+    int stock_qty
+    int stock_min
+    string brand
+    string department
+    timestamp created_at
+  }
+
+  PRODUCT_TAXES {
+    uuid id PK
+    uuid product_id FK
+    string uf_dest
+    string cfop
+    int icms_cst
+    decimal icms_aliq
+    int pis_cst
+    decimal pis_aliq
+    int cofins_cst
+    decimal cofins_aliq
+  }
+
+  SALES {
+    uuid id PK
+    uuid company_id FK
+    uuid client_id FK
+    uuid user_id FK
+    decimal total_products
+    decimal total_discount
+    decimal total_paid
+    string status
+    string fiscal_model
+    timestamp sale_date
+  }
+
+  SALE_ITEMS {
+    uuid id PK
+    uuid sale_id FK
+    uuid product_id FK
+    decimal qty
+    decimal unit_price
+    decimal discount
+    decimal total
+    string cfop
+    decimal icms_value
+  }
+
+  PAYMENTS {
+    uuid id PK
+    uuid sale_id FK
+    string method
+    decimal amount
+    string nsu
+    string auth_code
+    string pix_txid
+    timestamp paid_at
+  }
+
+  INVOICES {
+    uuid id PK
+    uuid company_id FK
+    string model
+    int series
+    int number
+    string access_key UK
+    string xml_path
+    string status
+    timestamp authorized_at
+    string cancel_reason
+  }
+
+  INVOICE_EVENTS {
+    uuid id PK
+    uuid invoice_id FK
+    string event_type
+    string xml_path
+    string status
+    timestamp occurred_at
+  }
+
+  STOCK_MOVEMENTS {
+    uuid id PK
+    uuid company_id FK
+    uuid product_id FK
+    string type
+    decimal qty
+    decimal cost_unit
+    string origin_type
+    uuid origin_id
+    timestamp moved_at
+  }
+`;
+const { svg } = await mermaid.render('erd-svg', diagram);
+document.getElementById('erd').innerHTML = svg;
+document.querySelectorAll('#erd svg.erDiagram .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+document.querySelectorAll('#erd svg.erDiagram .row-rect-odd path, #erd svg.erDiagram .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>
