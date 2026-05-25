@@ -42,6 +42,7 @@ public static class DbSeeder
         var vendedor = await db.Users.FirstOrDefaultAsync(u => u.Username == "vendedor");
         if (vendedor == null)
         {
+            Console.WriteLine("[SEED] Criando usuário vendedor...");
             vendedor = new User
             {
                 CompanyId = company.Id,
@@ -52,6 +53,11 @@ public static class DbSeeder
             };
             db.Users.Add(vendedor);
             await db.SaveChangesAsync();
+            Console.WriteLine("[SEED] Usuário vendedor criado com sucesso!");
+        }
+        else
+        {
+            Console.WriteLine("[SEED] Usuário vendedor já existe.");
         }
 
         if (!await db.Clients.AnyAsync(c => c.CompanyId == company.Id))
