@@ -36,10 +36,6 @@ export default function LoginPage() {
         <div className="hidden lg:flex flex-col justify-between p-14 bg-gradient-to-br from-indigo-700 via-indigo-900 to-slate-950 text-white">
           <div>
             <div className="flex items-center gap-3 mb-10">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl font-bold">
-                N
-              </div>
-
               <div>
                 <h1 className="text-3xl font-bold">Nina ERP</h1>
                 <p className="text-indigo-200 text-sm">
