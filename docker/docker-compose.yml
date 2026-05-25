@@ -23,7 +23,7 @@ services:
       POSTGRES_USER: erpuser
       POSTGRES_PASSWORD: erp_password
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
