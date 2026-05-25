@@ -1,26 +1,21 @@
 using NinaERP.Domain.Common;
-
+using NinaERP.Domain.Enums;
 namespace NinaERP.Domain.Entities;
-
 public class Invoice : BaseEntity
 {
     public Guid CompanyId { get; set; }
-    public Company? Company { get; set; }
-
-    public string Model { get; set; } = "NFe"; // NFe, NFCe, etc
+    public Guid? SaleId { get; set; }
+    public InvoiceModel Model { get; set; }
     public int Series { get; set; }
     public int Number { get; set; }
-    public string AccessKey { get; set; } = string.Empty; // UK
-    public string XmlPath { get; set; } = string.Empty;
-    public string Status { get; set; } = "Draft"; // Draft, Authorized, Canceled
+    public string? AccessKey { get; set; }
+    public string? XmlPath { get; set; }
+    public string? DanfePath { get; set; }
+    public InvoiceStatus Status { get; set; } = InvoiceStatus.Draft;
     public DateTime? AuthorizedAt { get; set; }
-    public string CancelReason { get; set; } = string.Empty;
-
-    public Guid? SaleId { get; set; }
+    public string? CancelReason { get; set; }
+    public string? Protocol { get; set; }
+    public Company? Company { get; set; }
     public Sale? Sale { get; set; }
-
-    public Guid? PurchaseId { get; set; }
-    public Purchase? Purchase { get; set; }
-
     public ICollection<InvoiceEvent> Events { get; set; } = new List<InvoiceEvent>();
 }

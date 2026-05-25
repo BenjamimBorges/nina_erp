@@ -1,7 +1,5 @@
 using NinaERP.Domain.Common;
-
 namespace NinaERP.Application.Common.Interfaces;
-
 public interface IRepository<T> where T : BaseEntity
 {
     Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default);

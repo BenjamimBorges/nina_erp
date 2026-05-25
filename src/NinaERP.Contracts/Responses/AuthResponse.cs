@@ -1,9 +1,2 @@
 namespace NinaERP.Contracts.Responses;
-
-public class AuthResponse
-{
-    public string Token { get; set; } = string.Empty;
-    public string Username { get; set; } = string.Empty;
-    public string FullName { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
-}
+public record AuthResponse(string Token, string Username, string FullName, string Role, Guid CompanyId);

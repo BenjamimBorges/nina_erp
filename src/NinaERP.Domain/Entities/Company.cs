@@ -1,23 +1,24 @@
 using NinaERP.Domain.Common;
-
+using NinaERP.Domain.Enums;
 namespace NinaERP.Domain.Entities;
-
 public class Company : BaseEntity
 {
-    public string Cnpj { get; set; } = string.Empty; // UK
-    public string Ie { get; set; } = string.Empty;
+    public string Cnpj { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string FantasyName { get; set; } = string.Empty;
+    public string StateRegistration { get; set; } = string.Empty;
+    public string MunicipalRegistration { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
-    public string CertPfxPath { get; set; } = string.Empty;
-    public string CertPasswordHash { get; set; } = string.Empty;
-    public int FiscalRegime { get; set; }
-
-    public ICollection<User> Users { get; set; } = new List<User>();
-    public ICollection<Client> Clients { get; set; } = new List<Client>();
-    public ICollection<Product> Products { get; set; } = new List<Product>();
-    public ICollection<Sale> Sales { get; set; } = new List<Sale>();
-    public ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
-    public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
-    public ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
+    public string City { get; set; } = string.Empty;
+    public string State { get; set; } = string.Empty;
+    public string ZipCode { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public FiscalRegime FiscalRegime { get; set; }
+    public string? CertPfxPath { get; set; }
+    public string? CertPasswordHash { get; set; }
+    public int NfeSeries { get; set; } = 1;
+    public int NfceSerires { get; set; } = 1;
+    public int NfeNumber { get; set; } = 0;
+    public int NfceNumber { get; set; } = 0;
 }

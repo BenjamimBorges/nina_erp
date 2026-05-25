@@ -1,48 +1,33 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.8.33424.285
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERP.Core", "ERP.Core\ERP.Core.csproj", "{6A077A3D-4E22-4FF6-AE52-7A6FA57DDC0F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NinaERP.Domain", "src\NinaERP.Domain\NinaERP.Domain.csproj", "{A1111111-0000-0000-0000-000000000001}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERP.Infrastructure", "ERP.Infrastructure\ERP.Infrastructure.csproj", "{0A5B655D-5F4F-4C27-972A-DA8E4D7F97AA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NinaERP.Contracts", "src\NinaERP.Contracts\NinaERP.Contracts.csproj", "{A1111111-0000-0000-0000-000000000002}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERP.Shared", "ERP.Shared\ERP.Shared.csproj", "{2F86E2DC-7712-438F-9299-5E0F1A43C86C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NinaERP.Application", "src\NinaERP.Application\NinaERP.Application.csproj", "{A1111111-0000-0000-0000-000000000003}"
 EndProject
-Project("{349c5851-65df-11da-9384-00065b846f21}") = "ERP.API", "ERP.API\ERP.API.csproj", "{C167B3B5-05DE-4291-965B-8B66F75D3D19}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NinaERP.Infrastructure", "src\NinaERP.Infrastructure\NinaERP.Infrastructure.csproj", "{A1111111-0000-0000-0000-000000000004}"
 EndProject
-Project("{60dc8134-eba5-43b8-bcc9-bb4bc16c2548}") = "ERP.Desktop", "ERP.Desktop\ERP.Desktop.csproj", "{E71192B1-02E8-4ABF-A3A5-8B1E6E4FBD47}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NinaERP.API", "src\NinaERP.API\NinaERP.API.csproj", "{A1111111-0000-0000-0000-000000000005}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERP.Database", "ERP.Database\ERP.Database.csproj", "{D8CE4440-9D2A-4DD4-9A10-3FBB5B2C0F23}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NinaERP.Tests", "src\NinaERP.Tests\NinaERP.Tests.csproj", "{A1111111-0000-0000-0000-000000000006}"
 EndProject
 Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6A077A3D-4E22-4FF6-AE52-7A6FA57DDC0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6A077A3D-4E22-4FF6-AE52-7A6FA57DDC0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6A077A3D-4E22-4FF6-AE52-7A6FA57DDC0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6A077A3D-4E22-4FF6-AE52-7A6FA57DDC0F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0A5B655D-5F4F-4C27-972A-DA8E4D7F97AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A5B655D-5F4F-4C27-972A-DA8E4D7F97AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A5B655D-5F4F-4C27-972A-DA8E4D7F97AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A5B655D-5F4F-4C27-972A-DA8E4D7F97AA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F86E2DC-7712-438F-9299-5E0F1A43C86C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F86E2DC-7712-438F-9299-5E0F1A43C86C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F86E2DC-7712-438F-9299-5E0F1A43C86C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F86E2DC-7712-438F-9299-5E0F1A43C86C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C167B3B5-05DE-4291-965B-8B66F75D3D19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C167B3B5-05DE-4291-965B-8B66F75D3D19}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C167B3B5-05DE-4291-965B-8B66F75D3D19}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C167B3B5-05DE-4291-965B-8B66F75D3D19}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E71192B1-02E8-4ABF-A3A5-8B1E6E4FBD47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E71192B1-02E8-4ABF-A3A5-8B1E6E4FBD47}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E71192B1-02E8-4ABF-A3A5-8B1E6E4FBD47}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E71192B1-02E8-4ABF-A3A5-8B1E6E4FBD47}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D8CE4440-9D2A-4DD4-9A10-3FBB5B2C0F23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D8CE4440-9D2A-4DD4-9A10-3FBB5B2C0F23}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D8CE4440-9D2A-4DD4-9A10-3FBB5B2C0F23}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D8CE4440-9D2A-4DD4-9A10-3FBB5B2C0F23}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
+  GlobalSection(SolutionConfigurationPlatforms) = preSolution
+    Debug|Any CPU = Debug|Any CPU
+    Release|Any CPU = Release|Any CPU
+  EndGlobalSection
+  GlobalSection(ProjectConfigurationPlatforms) = postSolution
+    {A1111111-0000-0000-0000-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {A1111111-0000-0000-0000-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {A1111111-0000-0000-0000-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {A1111111-0000-0000-0000-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {A1111111-0000-0000-0000-000000000003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {A1111111-0000-0000-0000-000000000003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {A1111111-0000-0000-0000-000000000004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {A1111111-0000-0000-0000-000000000004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {A1111111-0000-0000-0000-000000000005}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {A1111111-0000-0000-0000-000000000005}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {A1111111-0000-0000-0000-000000000006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {A1111111-0000-0000-0000-000000000006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+  EndGlobalSection
 EndGlobal
