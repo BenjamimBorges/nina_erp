@@ -1,0 +1,11 @@
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/bin/Debug/net8.0/NinaERP.Domain.deps.json
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/bin/Debug/net8.0/NinaERP.Domain.dll
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/bin/Debug/net8.0/NinaERP.Domain.pdb
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/obj/Debug/net8.0/NinaERP.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/obj/Debug/net8.0/NinaERP.Domain.AssemblyInfoInputs.cache
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/obj/Debug/net8.0/NinaERP.Domain.AssemblyInfo.cs
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/obj/Debug/net8.0/NinaERP.Domain.csproj.CoreCompileInputs.cache
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/obj/Debug/net8.0/NinaERP.Domain.dll
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/obj/Debug/net8.0/refint/NinaERP.Domain.dll
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/obj/Debug/net8.0/NinaERP.Domain.pdb
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/obj/Debug/net8.0/ref/NinaERP.Domain.dll

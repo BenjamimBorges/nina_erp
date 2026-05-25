@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "pMqaSeSg3gqokpNq/KxRwVMYTnieZ2YPHjRGzJ8JDDM=",
+  "Source": "NinaERP.API",
+  "BasePath": "_content/NinaERP.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

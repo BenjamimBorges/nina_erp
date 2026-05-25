@@ -1,0 +1,17 @@
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/bin/Debug/net8.0/NinaERP.Application.deps.json
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/bin/Debug/net8.0/NinaERP.Application.dll
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/bin/Debug/net8.0/NinaERP.Application.pdb
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/bin/Debug/net8.0/NinaERP.Contracts.dll
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/bin/Debug/net8.0/NinaERP.Domain.dll
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/bin/Debug/net8.0/NinaERP.Domain.pdb
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/bin/Debug/net8.0/NinaERP.Contracts.pdb
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/obj/Debug/net8.0/NinaERP.Application.csproj.AssemblyReference.cache
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/obj/Debug/net8.0/NinaERP.Application.GeneratedMSBuildEditorConfig.editorconfig
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/obj/Debug/net8.0/NinaERP.Application.AssemblyInfoInputs.cache
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/obj/Debug/net8.0/NinaERP.Application.AssemblyInfo.cs
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/obj/Debug/net8.0/NinaERP.Application.csproj.CoreCompileInputs.cache
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/obj/Debug/net8.0/NinaERP.Application.csproj.CopyComplete
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/obj/Debug/net8.0/NinaERP.Application.dll
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/obj/Debug/net8.0/refint/NinaERP.Application.dll
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/obj/Debug/net8.0/NinaERP.Application.pdb
+/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/obj/Debug/net8.0/ref/NinaERP.Application.dll
