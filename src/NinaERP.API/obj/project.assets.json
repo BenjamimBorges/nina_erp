@@ -3896,11 +3896,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.API/NinaERP.API.csproj",
+      "projectUniqueName": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.API/NinaERP.API.csproj",
       "projectName": "NinaERP.API",
-      "projectPath": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.API/NinaERP.API.csproj",
+      "projectPath": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.API/NinaERP.API.csproj",
       "packagesPath": "/home/benborges/.nuget/packages/",
-      "outputPath": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.API/obj/",
+      "outputPath": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.API/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/benborges/.nuget/NuGet/NuGet.Config"
@@ -3915,14 +3915,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/NinaERP.Application.csproj": {
-              "projectPath": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Application/NinaERP.Application.csproj"
+            "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Application/NinaERP.Application.csproj": {
+              "projectPath": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Application/NinaERP.Application.csproj"
             },
-            "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Contracts/NinaERP.Contracts.csproj": {
-              "projectPath": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Contracts/NinaERP.Contracts.csproj"
+            "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Contracts/NinaERP.Contracts.csproj": {
+              "projectPath": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Contracts/NinaERP.Contracts.csproj"
             },
-            "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Infrastructure/NinaERP.Infrastructure.csproj": {
-              "projectPath": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Infrastructure/NinaERP.Infrastructure.csproj"
+            "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Infrastructure/NinaERP.Infrastructure.csproj": {
+              "projectPath": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Infrastructure/NinaERP.Infrastructure.csproj"
             }
           }
         }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "zNQDgxqjy0wozWvZ0kGy2tl/Fnz1SG08T9bp6NYZTTREeK1fI3vSyDeZlnVcNx4vn7HWpBUtDF3T/HFSXmdIFg==",
+  "dgSpecHash": "Hou2D4gN4wDveFgzyY9inuR+Cbirp6jFOR+ani5Bs/y7m4U+FK0yiNSgTAT1P+1qNeck7T898Fe8Y7yagnAVyQ==",
   "success": true,
-  "projectFilePath": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/NinaERP.Domain.csproj",
+  "projectFilePath": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Domain/NinaERP.Domain.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

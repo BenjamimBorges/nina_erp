@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "pNv4ERziYdSuf+Oh15e03P9zDO7OhTQT8ZryEPFm1X3XFaZSbkuxVVAHdcPxqMmbQuu76CFP0DXoqYQmH2RXRw==",
+  "dgSpecHash": "yOCODPwQ4NsWL5tDMj6eaP4QgANun+G6jq5C4TfB8xSmQKVIlbGrWAliQbpaJTmTJj5fruE8bRxA79bW1j+wRw==",
   "success": true,
-  "projectFilePath": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Tests/NinaERP.Tests.csproj",
+  "projectFilePath": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Tests/NinaERP.Tests.csproj",
   "expectedPackageFiles": [
     "/home/benborges/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512",
     "/home/benborges/.nuget/packages/castle.core/5.1.1/castle.core.5.1.1.nupkg.sha512",

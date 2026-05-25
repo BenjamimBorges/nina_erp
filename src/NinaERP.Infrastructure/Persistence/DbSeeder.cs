@@ -39,6 +39,21 @@ public static class DbSeeder
             await db.SaveChangesAsync();
         }
 
+        var vendedor = await db.Users.FirstOrDefaultAsync(u => u.Username == "vendedor");
+        if (vendedor == null)
+        {
+            vendedor = new User
+            {
+                CompanyId = company.Id,
+                Username = "vendedor",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Vendedor@123"),
+                FullName = "João Vendedor",
+                Role = UserRole.Manager
+            };
+            db.Users.Add(vendedor);
+            await db.SaveChangesAsync();
+        }
+
         if (!await db.Clients.AnyAsync(c => c.CompanyId == company.Id))
         {
             db.Clients.AddRange(
@@ -143,11 +158,11 @@ public static class DbSeeder
                     Ncm = "61091000",
                     Cest = "0101010",
                     Unit = "UN",
-                    PriceSale = 49.90m,
-                    PriceMinimum = 39.90m,
-                    CostAverage = 25.00m,
-                    StockQty = 150,
-                    StockMin = 20,
+                    PriceSale = 100.00m,
+                    PriceMinimum = 65.00m,
+                    CostAverage = 30.00m,
+                    StockQty = 500,
+                    StockMin = 50,
                     Brand = "Nina",
                     Department = "Vestuário",
                     Barcode = "7891234567890"
@@ -210,17 +225,17 @@ public static class DbSeeder
                 {
                     CompanyId = company.Id,
                     Sku = "NINA-005",
-                    Name = "Notebook Tecnológico",
-                    Description = "Notebook semi-novo com SSD de 256GB",
+                    Name = "Notebook Dell",
+                    Description = "Notebook Dell com processador Intel Core i7",
                     Ncm = "84713012",
                     Cest = "0505050",
                     Unit = "UN",
-                    PriceSale = 2299.90m,
-                    PriceMinimum = 1999.90m,
-                    CostAverage = 1800.00m,
-                    StockQty = 8,
-                    StockMin = 10,
-                    Brand = "Nina",
+                    PriceSale = 5000.00m,
+                    PriceMinimum = 3250.00m,
+                    CostAverage = 2500.00m,
+                    StockQty = 150,
+                    StockMin = 5,
+                    Brand = "Dell",
                     Department = "Informática",
                     Barcode = "7891234567894"
                 }
@@ -237,20 +252,20 @@ public static class DbSeeder
                         CompanyId = company.Id,
                         ProductId = products[0].Id,
                         Type = StockMovementType.Entry,
-                        Qty = 100,
-                        CostUnit = 24.50m,
-                        OriginType = "Ajuste inicial",
-                        Notes = "Entrada inicial de estoque"
+                        Qty = 500,
+                        CostUnit = 30.00m,
+                        OriginType = "Compra inicial",
+                        Notes = "Entrada inicial de camisetas em estoque"
                     },
                     new StockMovement
                     {
                         CompanyId = company.Id,
                         ProductId = products[4].Id,
                         Type = StockMovementType.Entry,
-                        Qty = 8,
-                        CostUnit = 1800.00m,
-                        OriginType = "Compra demo",
-                        Notes = "Entrada de notebook"
+                        Qty = 150,
+                        CostUnit = 2500.00m,
+                        OriginType = "Compra inicial",
+                        Notes = "Entrada inicial de notebooks em estoque"
                     },
                     new StockMovement
                     {
@@ -268,25 +283,37 @@ public static class DbSeeder
 
             if (!await db.Sales.AnyAsync(s => s.CompanyId == company.Id))
             {
-                var client = await db.Clients.FirstAsync(c => c.CompanyId == company.Id);
-                var sale = new Sale
+                // Obter clientes para varejo e atacado
+                var clienteVarejo = await db.Clients.FirstAsync(c => c.CompanyId == company.Id && c.Document == "123.456.789-09");
+                var clienteAtacado = await db.Clients.FirstAsync(c => c.CompanyId == company.Id && c.Document == "01.234.567/0001-89");
+
+                // Preços de varejo
+                decimal camisetaVarejo = 100.00m;
+                decimal notebookVarejo = 5000.00m;
+
+                // Preços de atacado (35% desconto = 65% do valor)
+                decimal camisetaAtacado = camisetaVarejo * 0.65m;
+                decimal notebookAtacado = notebookVarejo * 0.65m;
+
+                // ===== VENDA VAREJO (NFC-e) =====
+                var saleVarejo = new Sale
                 {
                     CompanyId = company.Id,
-                    ClientId = client.Id,
-                    UserId = admin.Id,
-                    TotalProducts = 149.70m,
+                    ClientId = clienteVarejo.Id,
+                    UserId = vendedor.Id,
+                    TotalProducts = (2 * camisetaVarejo) + notebookVarejo,
                     TotalDiscount = 0m,
-                    TotalPaid = 149.70m,
+                    TotalPaid = (2 * camisetaVarejo) + notebookVarejo,
                     Status = SaleStatus.Completed,
                     FiscalModel = InvoiceModel.NFCeModel65,
                     SaleDate = DateTime.UtcNow
                 };
 
-                sale.Items.Add(new SaleItem
+                saleVarejo.Items.Add(new SaleItem
                 {
-                    ProductId = products[0].Id,
-                    Qty = 3,
-                    UnitPrice = 49.90m,
+                    ProductId = products[0].Id, // Camiseta Básica
+                    Qty = 2,
+                    UnitPrice = camisetaVarejo,
                     Discount = 0m,
                     Cfop = "5102",
                     IcmsValue = 0m,
@@ -294,35 +321,114 @@ public static class DbSeeder
                     CofinsValue = 0m
                 });
 
-                sale.Payments.Add(new Payment
+                saleVarejo.Items.Add(new SaleItem
+                {
+                    ProductId = products[4].Id, // Notebook Dell
+                    Qty = 1,
+                    UnitPrice = notebookVarejo,
+                    Discount = 0m,
+                    Cfop = "5102",
+                    IcmsValue = 0m,
+                    PisValue = 0m,
+                    CofinsValue = 0m
+                });
+
+                saleVarejo.Payments.Add(new Payment
                 {
                     Method = PaymentMethod.Cash,
-                    Amount = 149.70m,
+                    Amount = saleVarejo.TotalPaid,
                     PaidAt = DateTime.UtcNow
                 });
 
-                var invoice = new Invoice
+                var invoiceVarejo = new Invoice
                 {
                     CompanyId = company.Id,
-                    Sale = sale,
+                    Sale = saleVarejo,
                     Model = InvoiceModel.NFCeModel65,
                     Series = 1,
                     Number = 1,
-                    AccessKey = "12345678901234567890123456789012345678901234",
+                    AccessKey = "12345678901234567890123456789012345678901111",
                     Status = InvoiceStatus.Authorized,
                     AuthorizedAt = DateTime.UtcNow
                 };
 
-                invoice.Events.Add(new InvoiceEvent
+                invoiceVarejo.Events.Add(new InvoiceEvent
                 {
                     EventType = "Authorization",
                     Status = "Authorized",
-                    Protocol = "202600000000000",
+                    Protocol = "202600000000001",
                     OccurredAt = DateTime.UtcNow
                 });
 
-                db.Sales.Add(sale);
-                db.Invoices.Add(invoice);
+                // ===== VENDA ATACADO (NF-e) =====
+                var saleAtacado = new Sale
+                {
+                    CompanyId = company.Id,
+                    ClientId = clienteAtacado.Id,
+                    UserId = vendedor.Id,
+                    TotalProducts = (100 * camisetaAtacado) + (5 * notebookAtacado),
+                    TotalDiscount = 0m,
+                    TotalPaid = (100 * camisetaAtacado) + (5 * notebookAtacado),
+                    Status = SaleStatus.Completed,
+                    FiscalModel = InvoiceModel.NFeModel55,
+                    SaleDate = DateTime.UtcNow.AddDays(-1)
+                };
+
+                saleAtacado.Items.Add(new SaleItem
+                {
+                    ProductId = products[0].Id, // Camiseta Básica
+                    Qty = 100,
+                    UnitPrice = camisetaAtacado,
+                    Discount = 0m,
+                    Cfop = "5102",
+                    IcmsValue = 0m,
+                    PisValue = 0m,
+                    CofinsValue = 0m
+                });
+
+                saleAtacado.Items.Add(new SaleItem
+                {
+                    ProductId = products[4].Id, // Notebook Dell
+                    Qty = 5,
+                    UnitPrice = notebookAtacado,
+                    Discount = 0m,
+                    Cfop = "5102",
+                    IcmsValue = 0m,
+                    PisValue = 0m,
+                    CofinsValue = 0m
+                });
+
+                saleAtacado.Payments.Add(new Payment
+                {
+                    Method = PaymentMethod.Cash,
+                    Amount = saleAtacado.TotalPaid,
+                    PaidAt = DateTime.UtcNow.AddDays(-1)
+                });
+
+                var invoiceAtacado = new Invoice
+                {
+                    CompanyId = company.Id,
+                    Sale = saleAtacado,
+                    Model = InvoiceModel.NFeModel55,
+                    Series = 1,
+                    Number = 2,
+                    AccessKey = "12345678901234567890123456789012345678902222",
+                    Status = InvoiceStatus.Authorized,
+                    AuthorizedAt = DateTime.UtcNow.AddDays(-1)
+                };
+
+                invoiceAtacado.Events.Add(new InvoiceEvent
+                {
+                    EventType = "Authorization",
+                    Status = "Authorized",
+                    Protocol = "202600000000002",
+                    OccurredAt = DateTime.UtcNow.AddDays(-1)
+                });
+
+                db.Sales.Add(saleVarejo);
+                db.Sales.Add(saleAtacado);
+                db.Invoices.Add(invoiceVarejo);
+                db.Invoices.Add(invoiceAtacado);
                 await db.SaveChangesAsync();
             }
         }

@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/NinaERP.Domain.csproj",
+      "projectUniqueName": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Domain/NinaERP.Domain.csproj",
       "projectName": "NinaERP.Domain",
-      "projectPath": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/NinaERP.Domain.csproj",
+      "projectPath": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Domain/NinaERP.Domain.csproj",
       "packagesPath": "/home/benborges/.nuget/packages/",
-      "outputPath": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Domain/obj/",
+      "outputPath": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Domain/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/benborges/.nuget/NuGet/NuGet.Config"

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "67XGE7gHW80KeA8lzZsUWfW1MyE4EgG3z/qLJZOZk4VRtLL2NxOb18iWrEfFCCLrgLXq8bW6x0ygcsdsRi8jBg==",
+  "dgSpecHash": "5qxs8+3848MKrkkXeK3ZGgB/jssyVonS/IhQc32Ei6oYJApIaRV7uH4I6II6tfpFU3hHpM/3nXzL/uKW39EUPA==",
   "success": true,
-  "projectFilePath": "/home/benborges/Documentos/projetos/erp/nina_erp_version2/nina_erp_retail/src/NinaERP.Infrastructure/NinaERP.Infrastructure.csproj",
+  "projectFilePath": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Infrastructure/NinaERP.Infrastructure.csproj",
   "expectedPackageFiles": [
     "/home/benborges/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512",
     "/home/benborges/.nuget/packages/fluentvalidation/11.9.0/fluentvalidation.11.9.0.nupkg.sha512",
