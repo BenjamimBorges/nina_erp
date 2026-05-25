@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NinaERP.Contracts")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9d15f388652530228a76ef9c3a5dbda01ff074ad")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fa82d99abf9d5dc3e8b044894120783956dd0a81")]
 [assembly: System.Reflection.AssemblyProductAttribute("NinaERP.Contracts")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NinaERP.Contracts")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -284,8 +284,11 @@ public static class DbSeeder
             if (!await db.Sales.AnyAsync(s => s.CompanyId == company.Id))
             {
                 // Obter clientes para varejo e atacado
-                var clienteVarejo = await db.Clients.FirstAsync(c => c.CompanyId == company.Id && c.Document == "123.456.789-09");
-                var clienteAtacado = await db.Clients.FirstAsync(c => c.CompanyId == company.Id && c.Document == "01.234.567/0001-89");
+                var clienteVarejo = await db.Clients.FirstOrDefaultAsync(c => c.CompanyId == company.Id && c.Document == "123.456.789-09");
+                var clienteAtacado = await db.Clients.FirstOrDefaultAsync(c => c.CompanyId == company.Id && c.Document == "01.234.567/0001-89");
+
+                if (clienteVarejo == null || clienteAtacado == null)
+                    return;
 
                 // Preços de varejo
                 decimal camisetaVarejo = 100.00m;
