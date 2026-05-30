@@ -2,12 +2,14 @@ using Microsoft.EntityFrameworkCore;
 using NinaERP.Domain.Entities;
 
 namespace NinaERP.Infrastructure.Persistence;
+
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<Department> Departments => Set<Department>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductTax> ProductTaxes => Set<ProductTax>();
     public DbSet<Client> Clients => Set<Client>();
@@ -22,21 +24,33 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder mb)
     {
         // Companies
-        mb.Entity<Company>(e => {
+        mb.Entity<Company>(e =>
+        {
             e.HasIndex(x => x.Cnpj).IsUnique();
             e.Property(x => x.Cnpj).HasMaxLength(18);
             e.Property(x => x.Name).HasMaxLength(200);
         });
 
         // Users
-        mb.Entity<User>(e => {
+        mb.Entity<User>(e =>
+        {
             e.HasIndex(x => x.Username).IsUnique();
             e.Property(x => x.Username).HasMaxLength(100);
             e.HasOne(x => x.Company).WithMany().HasForeignKey(x => x.CompanyId);
         });
 
+        // Departments
+        mb.Entity<Department>(e =>
+        {
+            e.HasIndex(x => new { x.CompanyId, x.Name }).IsUnique();
+            e.Property(x => x.Name).HasMaxLength(100);
+            e.HasOne(x => x.Company).WithMany().HasForeignKey(x => x.CompanyId);
+            e.HasMany(x => x.Products).WithOne(x => x.Department).HasForeignKey(x => x.DepartmentId);
+        });
+
         // Products
-        mb.Entity<Product>(e => {
+        mb.Entity<Product>(e =>
+        {
             e.HasIndex(x => new { x.CompanyId, x.Sku }).IsUnique();
             e.Property(x => x.Sku).HasMaxLength(50);
             e.Property(x => x.Name).HasMaxLength(200);
@@ -50,7 +64,8 @@ public class AppDbContext : DbContext
         });
 
         // Clients
-        mb.Entity<Client>(e => {
+        mb.Entity<Client>(e =>
+        {
             e.HasIndex(x => new { x.CompanyId, x.Document });
             e.Property(x => x.Document).HasMaxLength(18);
             e.Property(x => x.Name).HasMaxLength(200);
@@ -59,7 +74,8 @@ public class AppDbContext : DbContext
         });
 
         // Suppliers
-        mb.Entity<Supplier>(e => {
+        mb.Entity<Supplier>(e =>
+        {
             e.HasIndex(x => new { x.CompanyId, x.Document });
             e.Property(x => x.Document).HasMaxLength(18);
             e.Property(x => x.Name).HasMaxLength(200);
@@ -67,7 +83,8 @@ public class AppDbContext : DbContext
         });
 
         // Sales
-        mb.Entity<Sale>(e => {
+        mb.Entity<Sale>(e =>
+        {
             e.Property(x => x.TotalProducts).HasColumnType("decimal(18,2)");
             e.Property(x => x.TotalDiscount).HasColumnType("decimal(18,2)");
             e.Property(x => x.TotalPaid).HasColumnType("decimal(18,2)");
@@ -79,7 +96,8 @@ public class AppDbContext : DbContext
         });
 
         // SaleItems
-        mb.Entity<SaleItem>(e => {
+        mb.Entity<SaleItem>(e =>
+        {
             e.Property(x => x.Qty).HasColumnType("decimal(18,4)");
             e.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
             e.Property(x => x.Discount).HasColumnType("decimal(18,2)");
@@ -88,19 +106,22 @@ public class AppDbContext : DbContext
         });
 
         // Payments
-        mb.Entity<Payment>(e => {
+        mb.Entity<Payment>(e =>
+        {
             e.Property(x => x.Amount).HasColumnType("decimal(18,2)");
         });
 
         // Invoices
-        mb.Entity<Invoice>(e => {
+        mb.Entity<Invoice>(e =>
+        {
             e.HasIndex(x => x.AccessKey).IsUnique().HasFilter("\"AccessKey\" IS NOT NULL");
             e.HasOne(x => x.Company).WithMany().HasForeignKey(x => x.CompanyId);
             e.HasMany(x => x.Events).WithOne(x => x.Invoice).HasForeignKey(x => x.InvoiceId);
         });
 
         // StockMovements
-        mb.Entity<StockMovement>(e => {
+        mb.Entity<StockMovement>(e =>
+        {
             e.Property(x => x.Qty).HasColumnType("decimal(18,4)");
             e.Property(x => x.CostUnit).HasColumnType("decimal(18,4)");
             e.HasOne(x => x.Company).WithMany().HasForeignKey(x => x.CompanyId);
