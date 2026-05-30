@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "yOCODPwQ4NsWL5tDMj6eaP4QgANun+G6jq5C4TfB8xSmQKVIlbGrWAliQbpaJTmTJj5fruE8bRxA79bW1j+wRw==",
+  "dgSpecHash": "2EnPg5uXlzRlMWloPsJ5rPg3jDzg+k2UwyOPvWzJpq50RwF7bAR8LJ5G8NOaK3YNZTv6GyQB4ahWXW5POyL5NA==",
   "success": true,
   "projectFilePath": "/home/benborges/Documentos/projetos/erp/nina_erp/src/NinaERP.Tests/NinaERP.Tests.csproj",
   "expectedPackageFiles": [
