@@ -17,7 +17,7 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
 
     public async Task<IReadOnlyList<Product>> SearchAsync(Guid companyId, string term, CancellationToken ct = default) =>
         await _set.Where(x => x.CompanyId == companyId && x.IsActive &&
-            (x.Name.Contains(term) || x.Sku.Contains(term) || x.Barcode.Contains(term) || x.Department.Contains(term)))
+            (x.Name.ToLower().Contains(term.ToLower()) || x.Sku.ToLower().Contains(term.ToLower()) || x.Barcode.ToLower().Contains(term.ToLower()) || x.Department.ToLower().Contains(term.ToLower())))
             .OrderBy(x => x.Name).Take(100).ToListAsync(ct);
 
     public async Task<IReadOnlyList<Product>> GetLowStockAsync(Guid companyId, CancellationToken ct = default) =>

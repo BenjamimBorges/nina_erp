@@ -3,9 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { clientsService } from "../../services/clients";
 import { dashboardService } from "../../services/dashboard";
 import { Search, Plus, Users, ShieldCheck } from "lucide-react";
+import { useModalStore } from "../../store/modal";
+import CreateClientModal from "../../components/modals/CreateClientModal";
 
 export default function ClientsPage() {
   const [search, setSearch] = useState("");
+  const { activeModal, openModal, closeModal } = useModalStore();
 
   const { data: summaryData } = useQuery({
     queryKey: ["dashboard-summary"],
@@ -30,7 +33,10 @@ export default function ClientsPage() {
             Controle os clientes ativos e seus limites de crédito.
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-2xl text-sm font-semibold hover:bg-indigo-700 transition-colors">
+        <button
+          onClick={() => openModal("client")}
+          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-2xl text-sm font-semibold hover:bg-indigo-700 transition-colors"
+        >
           <Plus size={16} /> Novo cliente
         </button>
       </header>
@@ -139,6 +145,12 @@ export default function ClientsPage() {
           </tbody>
         </table>
       </div>
+
+      <CreateClientModal
+        isOpen={activeModal === "client"}
+        onClose={closeModal}
+      />
     </div>
   );
 }
+

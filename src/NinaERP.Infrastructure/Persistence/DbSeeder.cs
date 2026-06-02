@@ -158,7 +158,7 @@ public static class DbSeeder
                 new Product
                 {
                     CompanyId = company.Id,
-                    Sku = "NINA-001",
+                    Sku = "1",
                     Name = "Camiseta Básica",
                     Description = "Camiseta 100% algodão branca",
                     Ncm = "61091000",
@@ -176,7 +176,7 @@ public static class DbSeeder
                 new Product
                 {
                     CompanyId = company.Id,
-                    Sku = "NINA-002",
+                    Sku = "2",
                     Name = "Calça Jeans",
                     Description = "Calça jeans escura masculina",
                     Ncm = "62034200",
@@ -194,7 +194,7 @@ public static class DbSeeder
                 new Product
                 {
                     CompanyId = company.Id,
-                    Sku = "NINA-003",
+                    Sku = "3",
                     Name = "Caderno A4 100 folhas",
                     Description = "Caderno universitário capa dura",
                     Ncm = "48201000",
@@ -212,7 +212,7 @@ public static class DbSeeder
                 new Product
                 {
                     CompanyId = company.Id,
-                    Sku = "NINA-004",
+                    Sku = "4",
                     Name = "Caneta Esferográfica Azul",
                     Description = "Caneta esferográfica 0.7mm",
                     Ncm = "96081000",
@@ -230,7 +230,7 @@ public static class DbSeeder
                 new Product
                 {
                     CompanyId = company.Id,
-                    Sku = "NINA-005",
+                    Sku = "5",
                     Name = "Notebook Dell",
                     Description = "Notebook Dell com processador Intel Core i7",
                     Ncm = "84713012",

@@ -17,5 +17,5 @@ public class DepartmentRepository : BaseRepository<Department>, IDepartmentRepos
 
     public async Task<Department?> GetByNameAsync(Guid companyId, string name, CancellationToken ct = default) =>
         await _set
-            .FirstOrDefaultAsync(x => x.CompanyId == companyId && x.Name == name, ct);
+            .FirstOrDefaultAsync(x => x.CompanyId == companyId && x.Name.ToLower() == name.ToLower(), ct);
 }

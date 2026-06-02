@@ -4,8 +4,8 @@ import type { ApiResponse, Client } from '../types'
 export const clientsService = {
   getAll: (search?: string) =>
     api.get<ApiResponse<Client[]>>('/clients', { params: { search } }).then(r => r.data),
-  create: (data: Omit<Client, 'id' | 'isActive'>) =>
+  create: (data: Omit<Client, 'id' | 'isActive' | 'fantasyName' | 'address' | 'city' | 'state' | 'zipCode' | 'creditLimit' | 'isLegalEntity'>) =>
     api.post<ApiResponse<string>>('/clients', data).then(r => r.data),
   update: (id: string, data: Partial<Client>) =>
-    api.put<void>(`/clients/${id}`, data)
+    api.put<void>(`/clients/${id}`, data),
 }

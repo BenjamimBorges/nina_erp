@@ -10,9 +10,12 @@ import {
   Box,
   Layers,
 } from "lucide-react";
+import { useModalStore } from "../../store/modal";
+import CreateProductModal from "../../components/modals/CreateProductModal";
 
 export default function ProductsPage() {
   const [search, setSearch] = useState("");
+  const { activeModal, openModal, closeModal } = useModalStore();
   const qc = useQueryClient();
 
   const { data: summaryData } = useQuery({
@@ -43,7 +46,10 @@ export default function ProductsPage() {
             Gerencie o catálogo de produtos da sua empresa.
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-2xl text-sm font-semibold hover:bg-indigo-700 transition-colors">
+        <button
+          onClick={() => openModal("product")}
+          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-2xl text-sm font-semibold hover:bg-indigo-700 transition-colors"
+        >
           <Plus size={16} /> Novo produto
         </button>
       </header>
@@ -179,6 +185,11 @@ export default function ProductsPage() {
           </tbody>
         </table>
       </div>
+
+      <CreateProductModal
+        isOpen={activeModal === "product"}
+        onClose={closeModal}
+      />
     </div>
   );
 }

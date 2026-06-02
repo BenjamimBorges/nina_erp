@@ -17,7 +17,7 @@ public class ClientRepository : BaseRepository<Client>, IClientRepository
 
     public async Task<IReadOnlyList<Client>> SearchAsync(Guid companyId, string term, CancellationToken ct = default) =>
         await _set.Where(x => x.CompanyId == companyId && x.IsActive &&
-            (x.Name.Contains(term) || x.Document.Contains(term) || x.Phone.Contains(term)))
+            (x.Name.ToLower().Contains(term.ToLower()) || x.Document.ToLower().Contains(term.ToLower()) || x.Phone.ToLower().Contains(term.ToLower())))
             .OrderBy(x => x.Name).Take(100).ToListAsync(ct);
 
     public async Task<int> CountAsync(Guid companyId, CancellationToken ct = default) =>

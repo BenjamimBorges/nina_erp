@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using NinaERP.Application.Features.Departments.Commands;
 using NinaERP.Application.Features.Departments.Queries;
 using NinaERP.Contracts;
+using NinaERP.Contracts.Responses;
 
 namespace NinaERP.API.Controllers;
 

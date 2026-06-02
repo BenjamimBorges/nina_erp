@@ -9,6 +9,7 @@ import DashboardPage from './pages/dashboard/DashboardPage'
 import ProductsPage from './pages/admin/ProductsPage'
 import ClientsPage from './pages/admin/ClientsPage'
 import SuppliersPage from './pages/admin/SuppliersPage'
+import DepartmentsPage from './pages/admin/DepartmentsPage'
 import StockPage from './pages/stock/StockPage'
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="products" element={<ProductsPage />} />
         <Route path="clients" element={<ClientsPage />} />
         <Route path="suppliers" element={<SuppliersPage />} />
+        <Route path="departments" element={<DepartmentsPage />} />
         <Route path="stock" element={<StockPage />} />
       </Route>
     </Routes>

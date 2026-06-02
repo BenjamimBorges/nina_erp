@@ -1,4 +1,5 @@
 using MediatR;
+using NinaERP.Application.Common.Exceptions;
 using NinaERP.Application.Common.Interfaces;
 using NinaERP.Domain.Entities;
 
@@ -15,6 +16,10 @@ public class CreateDepartmentHandler : IRequestHandler<CreateDepartmentCommand, 
 
     public async Task<Guid> Handle(CreateDepartmentCommand cmd, CancellationToken ct)
     {
+        var existing = await _uow.Departments.GetByNameAsync(GetCompanyId(), cmd.Name, ct);
+        if (existing != null)
+            throw new BusinessException($"Departamento '{cmd.Name}' já cadastrado.");
+
         var department = new Department
         {
             Name = cmd.Name,
@@ -22,7 +27,7 @@ public class CreateDepartmentHandler : IRequestHandler<CreateDepartmentCommand, 
             CompanyId = GetCompanyId()
         };
 
-        _uow.Departments.Add(department);
+        await _uow.Departments.AddAsync(department, ct);
         await _uow.CommitAsync(ct);
 
         return department.Id;
@@ -34,4 +39,5 @@ public class CreateDepartmentHandler : IRequestHandler<CreateDepartmentCommand, 
         return Guid.Empty;
     }
 }
+
 

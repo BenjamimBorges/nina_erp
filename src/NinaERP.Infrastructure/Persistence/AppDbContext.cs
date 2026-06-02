@@ -45,7 +45,7 @@ public class AppDbContext : DbContext
             e.HasIndex(x => new { x.CompanyId, x.Name }).IsUnique();
             e.Property(x => x.Name).HasMaxLength(100);
             e.HasOne(x => x.Company).WithMany().HasForeignKey(x => x.CompanyId);
-            e.HasMany(x => x.Products).WithOne(x => x.Department).HasForeignKey(x => x.DepartmentId);
+            e.HasMany(x => x.Products).WithOne(x => x.DepartmentNavigation).HasForeignKey(x => x.DepartmentId);
         });
 
         // Products

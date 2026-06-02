@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Plus, Truck, Users } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { suppliersService } from "../../services/suppliers";
-import { dashboardService } from "../../services/dashboard";
+import { useModalStore } from "../../store/modal";
+import CreateSupplierModal from "../../components/modals/CreateSupplierModal";
 
 export default function SuppliersPage() {
   const [search, setSearch] = useState("");
+  const { activeModal, openModal, closeModal } = useModalStore();
+
   const { data, isLoading } = useQuery({
     queryKey: ["suppliers", search],
     queryFn: () => suppliersService.getAll(search || undefined),
@@ -22,7 +25,10 @@ export default function SuppliersPage() {
             Fornecedores cadastrados no banco de dados
           </p>
         </div>
-        <button className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+        <button
+          onClick={() => openModal("supplier")}
+          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+        >
           <Plus size={16} />
           Novo fornecedor
         </button>
@@ -90,6 +96,11 @@ export default function SuppliersPage() {
           </tbody>
         </table>
       </div>
+
+      <CreateSupplierModal
+        isOpen={activeModal === "supplier"}
+        onClose={closeModal}
+      />
     </div>
   );
 }
