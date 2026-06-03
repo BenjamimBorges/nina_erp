@@ -1,11 +1,10 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/auth";
-import { Home, Package, Users, Truck, Layers, BarChart3, LogOut } from "lucide-react";
+import { Home, Package, Users, Truck, BarChart3, LogOut } from "lucide-react";
 
 const nav = [
   { to: "/dashboard", icon: Home, label: "Dashboard" },
-  { to: "/products", icon: Package, label: "Produtos" },
-  { to: "/departments", icon: Layers, label: "Departamentos" },
+  { to: "/cadastro-produto", icon: Package, label: "Cadastro Produto" },
   { to: "/clients", icon: Users, label: "Clientes" },
   { to: "/suppliers", icon: Truck, label: "Fornecedores" },
   { to: "/stock", icon: BarChart3, label: "Estoque" },
