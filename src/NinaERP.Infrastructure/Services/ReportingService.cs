@@ -28,6 +28,22 @@ public sealed class ReportingService(AppDbContext db) : IReportingService
         await ReadAsync(cmd, r => result.Add(new(r.GetGuid(0), r.GetString(1), r.GetDateTime(2), r.IsDBNull(3) ? null : r.GetDateTime(3), r.GetDecimal(4), r.GetDecimal(5), r.GetDecimal(6), r.GetDecimal(7), r.GetDecimal(8), r.IsDBNull(9) ? null : r.GetDecimal(9), r.IsDBNull(10) ? null : r.GetDecimal(10))), ct);
         return result;
     }
+    public async Task<IReadOnlyList<SellerSalesReport>> GetSellerSalesAsync(Guid companyId, DateTime from, DateTime to, int limit, CancellationToken ct)
+    {
+        var result = new List<SellerSalesReport>();
+        await using var cmd = Command("SELECT \"UserId\",\"SellerName\",SUM(\"SalesCount\")::int,COALESCE(SUM(\"NetSales\"),0),CASE WHEN SUM(\"SalesCount\")=0 THEN 0 ELSE COALESCE(SUM(\"NetSales\"),0)/SUM(\"SalesCount\") END FROM vw_seller_sales WHERE \"CompanyId\"=@company AND \"SaleDate\">=@from AND \"SaleDate\"<=@to GROUP BY \"UserId\",\"SellerName\" ORDER BY COALESCE(SUM(\"NetSales\"),0) DESC LIMIT @limit", companyId, from, to, limit);
+        await ReadAsync(cmd, r => result.Add(new(r.GetGuid(0), r.GetString(1), r.GetInt32(2), r.GetDecimal(3), r.GetDecimal(4))), ct);
+        return result;
+    }
+
+    public async Task<IReadOnlyList<PaymentMixReport>> GetPaymentMixAsync(Guid companyId, DateTime from, DateTime to, CancellationToken ct)
+    {
+        var result = new List<PaymentMixReport>();
+        await using var cmd = Command("SELECT CASE \"Method\" WHEN 0 THEN 'Dinheiro' WHEN 1 THEN 'Cartão de crédito' WHEN 2 THEN 'Cartão de débito' WHEN 3 THEN 'PIX' WHEN 4 THEN 'Boleto' WHEN 5 THEN 'Cheque' ELSE 'Outro' END, COUNT(*)::int, COALESCE(SUM(\"Amount\") FILTER (WHERE \"Status\" IN (3,6,7)),0), COALESCE(SUM(\"RefundedAmount\"),0), COALESCE(SUM(CASE WHEN \"Status\" IN (3,6,7) THEN \"Amount\"-\"RefundedAmount\" ELSE 0 END),0) FROM vw_payments WHERE \"CompanyId\"=@company AND COALESCE(\"CapturedAt\",\"CreatedAt\")>=@from AND COALESCE(\"CapturedAt\",\"CreatedAt\")<=@to GROUP BY \"Method\" ORDER BY 5 DESC", companyId, from, to, 100);
+        await ReadAsync(cmd, r => result.Add(new(r.GetString(0), r.GetInt32(1), r.GetDecimal(2), r.GetDecimal(3), r.GetDecimal(4))), ct);
+        return result;
+    }
+
     public async Task<FinancialSummaryReport> GetFinancialSummaryAsync(Guid companyId, CancellationToken ct)
     {
         await using var cmd = Command("SELECT \"PayablesOpen\", \"ReceivablesOpen\", \"PayablesPaid\", \"ReceivablesReceived\", \"OverduePayables\", \"OverdueReceivables\" FROM vw_financial_summary WHERE \"CompanyId\"=@company", companyId, null, null, 1);

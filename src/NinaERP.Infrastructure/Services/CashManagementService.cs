@@ -7,7 +7,7 @@ using NinaERP.Infrastructure.Persistence;
 
 namespace NinaERP.Infrastructure.Services;
 
-public sealed class CashManagementService(AppDbContext db) : ICashManagementService
+public sealed class CashManagementService(AppDbContext db, IApprovalService approvals) : ICashManagementService
 {
     public async Task<IReadOnlyList<CashRegisterDto>> GetRegistersAsync(Guid companyId, CancellationToken ct) =>
         await db.CashRegisters.AsNoTracking().Where(x => x.CompanyId == companyId && x.IsActive)
@@ -159,7 +159,7 @@ public sealed class CashManagementService(AppDbContext db) : ICashManagementServ
 
     public async Task<CashMovementDto> AddMovementAsync(
         Guid companyId, Guid userId, Guid sessionId, CashMovementType type, decimal amount,
-        string description, string idempotencyKey, CancellationToken ct)
+        string description, string idempotencyKey, Guid? approvalRequestId, CancellationToken ct)
     {
         if (amount <= 0) throw new BusinessException("O valor da movimentação deve ser positivo.");
         if (type is not (CashMovementType.Supply or CashMovementType.Withdrawal or CashMovementType.Adjustment))
@@ -179,8 +179,18 @@ public sealed class CashManagementService(AppDbContext db) : ICashManagementServ
         Guid? authorizedBy = null;
         if (type is CashMovementType.Withdrawal or CashMovementType.Adjustment)
         {
-            await EnsureManagerAsync(companyId, userId, ct);
-            authorizedBy = userId;
+            var role = await GetRoleAsync(companyId, userId, ct);
+            if (role is UserRole.Admin or UserRole.Manager)
+            {
+                authorizedBy = userId;
+            }
+            else
+            {
+                if (!approvalRequestId.HasValue)
+                    throw new BusinessException("Sangria/ajuste exige Gerente/Admin ou uma aprovação previamente concedida.");
+                var approval = await approvals.RequireApprovedAsync(companyId, approvalRequestId.Value, ApprovalType.CashMovement, sessionId, ct);
+                authorizedBy = approval.DecidedByUserId ?? throw new BusinessException("Aprovação sem usuário decisor.");
+            }
         }
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
@@ -224,13 +234,14 @@ public sealed class CashManagementService(AppDbContext db) : ICashManagementServ
 
     private async Task EnsureManagerAsync(Guid companyId, Guid userId, CancellationToken ct)
     {
-        var role = await db.Users.AsNoTracking()
-            .Where(x => x.Id == userId && x.CompanyId == companyId && x.IsActive)
-            .Select(x => (UserRole?)x.Role)
-            .FirstOrDefaultAsync(ct);
+        var role = await GetRoleAsync(companyId, userId, ct);
         if (role is not (UserRole.Admin or UserRole.Manager))
             throw new BusinessException("A operação exige autenticação de um usuário Administrador ou Gerente.");
     }
+
+    private async Task<UserRole?> GetRoleAsync(Guid companyId, Guid userId, CancellationToken ct) =>
+        await db.Users.AsNoTracking().Where(x => x.Id == userId && x.CompanyId == companyId && x.IsActive)
+            .Select(x => (UserRole?)x.Role).FirstOrDefaultAsync(ct);
 
     private async Task<IdempotencyRecord?> FindIdempotencyAsync(
         Guid companyId, string scope, string key, string requestHash, CancellationToken ct)

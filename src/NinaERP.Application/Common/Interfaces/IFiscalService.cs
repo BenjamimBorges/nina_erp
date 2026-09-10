@@ -35,6 +35,7 @@ public sealed record FiscalConfigurationDto(Guid Id, FiscalEnvironment Environme
 public sealed record FiscalInvoiceDto(Guid Id, Guid? SaleId, InvoiceModel Model, FiscalEnvironment Environment,
     int Series, int Number, string? AccessKey, InvoiceStatus Status, string Provider, string? Protocol,
     string? RejectionCode, string? RejectionMessage, bool IsContingency, DateTime? AuthorizedAt, DateTime CreatedAt);
+public sealed record FiscalReadinessDto(bool ConfigurationEnabled, string Provider, FiscalEnvironment Environment, bool ProviderRegistered, bool CertificateConfigured, bool NfceCscConfigured, int ActiveTaxProfiles, int PendingDocuments, bool CanAttemptEmission, IReadOnlyList<string> BlockingReasons);
 public sealed record FiscalDashboardDto(int Authorized, int Pending, int Rejected, int Cancelled, int Contingency);
 public sealed record FiscalNumberVoidDto(Guid Id, InvoiceModel Model, FiscalEnvironment Environment, int Series, int FromNumber, int ToNumber, string Reason, FiscalNumberVoidStatus Status, string Provider, string? Protocol, string? RejectionCode, string? RejectionMessage, DateTime CreatedAt, DateTime? CompletedAt);
 public sealed record TaxGuideDto(Guid Id, string TaxType, int ReferenceYear, int ReferenceMonth, decimal TotalAmount,
@@ -44,6 +45,7 @@ public interface IFiscalService
 {
     Task<FiscalConfigurationDto?> GetConfigurationAsync(Guid companyId, CancellationToken ct);
     Task<FiscalConfigurationDto> SaveConfigurationAsync(Guid companyId, FiscalConfigurationDto configuration, CancellationToken ct);
+    Task<FiscalReadinessDto> GetReadinessAsync(Guid companyId, CancellationToken ct);
     Task<FiscalDashboardDto> GetDashboardAsync(Guid companyId, CancellationToken ct);
     Task<IReadOnlyList<FiscalInvoiceDto>> GetInvoicesAsync(Guid companyId, DateTime from, DateTime to, CancellationToken ct);
     Task<FiscalInvoiceDto> IssueAsync(Guid companyId, Guid saleId, InvoiceModel model, string idempotencyKey, bool allowContingency, CancellationToken ct);

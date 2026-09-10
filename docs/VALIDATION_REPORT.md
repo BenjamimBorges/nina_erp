@@ -1,6 +1,6 @@
-# Nina ERP — Relatório de validação das etapas 13–20
+# Nina ERP — Relatório consolidado de validação das etapas 13–30
 
-Data: **2026-09-10** — release candidate `0.2.0-hml`.
+Data: **2026-09-10** — release candidate `0.3.0-hml`.
 
 ## Executado de fato neste ambiente
 
@@ -11,9 +11,9 @@ Após a migração da autenticação para cookie HttpOnly e atualização do pai
 - `npm run build`: **PASS**.
 - TypeScript: **PASS**.
 - Vite production build: **PASS**.
-- **1.664 módulos transformados**.
-- JS: ~352,07 kB (~104,62 kB gzip).
-- CSS: ~24,21 kB (~4,83 kB gzip).
+- **1.670 módulos transformados**.
+- JS: ~371,36 kB (~108,70 kB gzip).
+- CSS: ~25,17 kB (~5,02 kB gzip).
 - `npm audit --offline --omit=dev --audit-level=high`: **0 vulnerabilidades encontradas no cache local**. Isso não substitui o audit online do CI.
 
 ### Scripts e dados
@@ -22,9 +22,8 @@ Após a migração da autenticação para cookie HttpOnly e atualização do pai
 - `python3 -m py_compile` nos scripts Python: **PASS**.
 - JSON do projeto fora de artefatos/dependências: **PASS**.
 - Validador da massa: **PASS** — 3 perfis administrativos, 3 vendedores, 20 produtos, 20 EAN-13 válidos/únicos, 4 clientes em UFs distintas, preços de venda superiores aos custos, compra inicial de 100 unidades e cenário PIX pendente.
-- Auditoria estática de segurança: **32/32 PASS**.
-- Gate estrutural profundo: **115/115 PASS** após a limpeza da árvore fonte.
-- CI corrigido para não habilitar cache `setup-dotnet` sem `packages.lock.json`; nesse cenário o action falharia antes do restore.
+- Auditoria estática de segurança: **43/43 PASS**.
+- Gate estrutural/contratual final: **124/124 PASS** após a limpeza da árvore fonte.
 - Os artefatos locais de evidência gerados durante o desenvolvimento são removidos do ZIP fonte final.
 
 ## Segurança validada estruturalmente

@@ -61,6 +61,20 @@ public sealed class ReadinessController(
                 activeTaxProfiles
             },
             payments = new { configuredAdapters = paymentAdapters.Select(x => x.ProviderName).Distinct().OrderBy(x => x).ToArray() },
+            expansion = new
+            {
+                pendingApprovals = await db.ApprovalRequests.CountAsync(x => x.CompanyId == CompanyId && x.IsActive && x.Status == NinaERP.Domain.Enums.ApprovalStatus.Pending, ct),
+                channelOrders = await db.ChannelOrders.CountAsync(x => x.CompanyId == CompanyId && x.IsActive, ct),
+                rejectedChannelOrders = await db.ChannelOrders.CountAsync(x => x.CompanyId == CompanyId && x.IsActive && x.Status == NinaERP.Domain.Enums.ChannelOrderStatus.Rejected, ct),
+                blockedAssistantInteractions24h = await db.AssistantInteractions.CountAsync(x => x.CompanyId == CompanyId && x.IsActive && x.Blocked && x.OccurredAt >= DateTime.UtcNow.AddHours(-24), ct),
+                healthyClusterNodes = await db.SystemNodes.CountAsync(x => x.IsActive && x.LastHeartbeatAt >= DateTime.UtcNow.AddSeconds(-60), ct)
+            },
+            runtime = new
+            {
+                framework = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
+                processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(),
+                os = System.Runtime.InteropServices.RuntimeInformation.OSDescription
+            },
             security = new
             {
                 sessionCookieHttpOnly = true,

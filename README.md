@@ -2,7 +2,7 @@
 
 ERP desktop/rede para Windows com **React + ASP.NET Core/.NET 10 + PostgreSQL**, empacotado com WPF/WebView2.
 
-> Estado desta revisão: **release candidate de homologação `0.2.0-hml` das etapas 00–20**. `productionApproved=false` até os gates .NET/PostgreSQL/Windows, restore e homologação fiscal/contábil passarem com evidência.
+> Estado desta revisão: **release candidate de homologação `0.3.0-hml` das etapas 00–30**. `productionApproved=false` até os gates .NET/PostgreSQL/Windows, restore e homologação fiscal/contábil passarem com evidência.
 
 ## Arquitetura
 
@@ -24,6 +24,8 @@ A API é o ponto central da aplicação. `CompanyId` é derivado da sessão aute
 ## Estado funcional
 
 O candidato inclui: usuários/RBAC, produtos/clientes/fornecedores, depósitos e estoque profissional, venda/PDV, caixa, pagamentos e outbox, compras, contas a pagar/receber, motor tributário configurável, camada fiscal desacoplada, central fiscal/guias, views de relatórios, observabilidade, backup/restore, build/instalador Windows e pipeline CI.
+
+A expansão 20–30 acrescenta relatórios/BI avançado, readiness fiscal, omnichannel idempotente, API móvel/PWA, aprovações por quatro-olhos, Assistente Nina consultivo e coordenação multinó via PostgreSQL, todos mantendo isolamento por empresa e feature flags para recursos de maior risco.
 
 Integrações externas **não são simuladas como confirmadas**: PIX/cartão sem adapter permanecem pendentes/conciliação; NF-e/NFC-e não é autorizada sem chave/protocolo real.
 
@@ -131,6 +133,8 @@ A autorização fiscal real e integrações de pagamento continuam dependentes d
 
 ## Documentação principal
 
+- `docs/IMPLEMENTATION_STAGES_20_30.md` — implementação e limites das etapas 20–30.
+- `docs/VALIDATION_STAGES_20_30.md` — evidências e gates pendentes das etapas 20–30.
 - `docs/IMPLEMENTATION_STAGES_13_20.md` — status das etapas 13–20.
 - `docs/VALIDATION_REPORT.md` — evidências e limitações desta revisão.
 - `docs/HOMOLOGATION_DATASET.md` — usuários/produtos/clientes/cenários.

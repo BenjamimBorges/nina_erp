@@ -1,6 +1,6 @@
 #define MyAppName "Nina ERP"
-#define MyAppVersion "0.2.0"
-#define MyAppLabel "0.2.0-hml"
+#define MyAppVersion "0.3.0"
+#define MyAppLabel "0.3.0-hml"
 #define MyAppPublisher "Nina ERP"
 #define Artifacts "..\..\artifacts\windows"
 

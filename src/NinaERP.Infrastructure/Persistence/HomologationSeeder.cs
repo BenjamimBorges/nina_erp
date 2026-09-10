@@ -57,7 +57,7 @@ public static class HomologationSeeder
         var sellerUsers = await db.Users.Where(x => x.CompanyId == company.Id && Sellers.Contains(x.Username)).OrderBy(x => x.Username).ToListAsync(ct);
         var adminUserId = await db.Users.Where(x => x.CompanyId == company.Id && x.Username == "admin_hml").Select(x => x.Id).SingleAsync(ct);
         await EnsurePilotPurchaseAsync(db, company.Id, adminUserId, supplier.Id, warehouse.Id, products, ct);
-        var cash = new CashManagementService(db);
+        var cash = new CashManagementService(db, new ApprovalService(db));
         var payment = new PaymentService(db);
         var uow = new UnitOfWork(db);
         var createSale = new CreateSaleHandler(uow, cash);

@@ -46,6 +46,12 @@ public sealed class AppDbContextModelSnapshot : ModelSnapshot
         mb.Entity<IdempotencyRecord>().ToTable("IdempotencyRecords");
         mb.Entity<OutboxMessage>().ToTable("OutboxMessages");
         mb.Entity<AuditLog>().ToTable("AuditLogs");
+        mb.Entity<ApprovalRequest>().ToTable("ApprovalRequests");
+        mb.Entity<ChannelOrder>().ToTable("ChannelOrders");
+        mb.Entity<ChannelOrderItem>().ToTable("ChannelOrderItems");
+        mb.Entity<AssistantInteraction>().ToTable("AssistantInteractions");
+        mb.Entity<DistributedLease>().ToTable("DistributedLeases");
+        mb.Entity<SystemNode>().ToTable("SystemNodes");
 
         mb.Entity<Company>(e =>
         {
@@ -389,6 +395,85 @@ public sealed class AppDbContextModelSnapshot : ModelSnapshot
             e.Property(x => x.DigitableLine).HasMaxLength(200);
             e.HasOne(x => x.Company).WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.AccountPayable).WithMany().HasForeignKey(x => x.AccountPayableId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        mb.Entity<ApprovalRequest>(e =>
+        {
+            e.HasIndex(x => new { x.CompanyId, x.IdempotencyKey }).IsUnique();
+            e.HasIndex(x => new { x.CompanyId, x.Status, x.RequestedAt });
+            e.Property(x => x.ResourceType).HasMaxLength(80);
+            e.Property(x => x.Reason).HasMaxLength(500);
+            e.Property(x => x.IdempotencyKey).HasMaxLength(120);
+            e.Property(x => x.DecisionNotes).HasMaxLength(500);
+            e.Property(x => x.Version).IsConcurrencyToken();
+            e.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.DecidedByUserId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+        });
+        mb.Entity<ChannelOrder>(e =>
+        {
+            e.HasIndex(x => new { x.CompanyId, x.Channel, x.ExternalOrderId }).IsUnique();
+            e.HasIndex(x => new { x.CompanyId, x.IdempotencyKey }).IsUnique();
+            e.HasIndex(x => new { x.CompanyId, x.Status, x.ReceivedAt });
+            e.Property(x => x.ExternalOrderId).HasMaxLength(120);
+            e.Property(x => x.ExternalCustomerId).HasMaxLength(120);
+            e.Property(x => x.ClientDocument).HasMaxLength(18);
+            e.Property(x => x.Currency).HasMaxLength(3);
+            e.Property(x => x.Total).HasPrecision(18, 2);
+            e.Property(x => x.PayloadHash).HasMaxLength(128);
+            e.Property(x => x.IdempotencyKey).HasMaxLength(120);
+            e.Property(x => x.ValidationError).HasMaxLength(1000);
+            e.Property(x => x.Version).IsConcurrencyToken();
+            e.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_ChannelOrder_Total", "\"Total\" >= 0");
+                t.HasCheckConstraint("CK_ChannelOrder_Currency", "\"Currency\" = 'BRL'");
+            });
+            e.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Sale>().WithMany().HasForeignKey(x => x.ImportedSaleId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+            e.HasMany(x => x.Items).WithOne(x => x.ChannelOrder).HasForeignKey(x => x.ChannelOrderId).OnDelete(DeleteBehavior.Cascade);
+        });
+        mb.Entity<ChannelOrderItem>(e =>
+        {
+            e.HasIndex(x => new { x.ChannelOrderId, x.ExternalSku });
+            e.Property(x => x.ExternalSku).HasMaxLength(80);
+            e.Property(x => x.Barcode).HasMaxLength(32);
+            e.Property(x => x.Quantity).HasPrecision(18, 4);
+            e.Property(x => x.UnitPrice).HasPrecision(18, 2);
+            e.Property(x => x.Discount).HasPrecision(18, 2);
+            e.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_ChannelOrderItem_Quantity", "\"Quantity\" > 0");
+                t.HasCheckConstraint("CK_ChannelOrderItem_UnitPrice", "\"UnitPrice\" >= 0");
+                t.HasCheckConstraint("CK_ChannelOrderItem_Discount", "\"Discount\" >= 0 AND \"Discount\" <= (\"Quantity\" * \"UnitPrice\")");
+            });
+            e.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+        });
+        mb.Entity<AssistantInteraction>(e =>
+        {
+            e.HasIndex(x => new { x.CompanyId, x.OccurredAt });
+            e.Property(x => x.Intent).HasMaxLength(80);
+            e.Property(x => x.QuestionHash).HasMaxLength(128);
+            e.Property(x => x.ResponseSummary).HasMaxLength(500);
+            e.Property(x => x.BlockReason).HasMaxLength(500);
+            e.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        mb.Entity<DistributedLease>(e =>
+        {
+            e.HasIndex(x => x.Name).IsUnique();
+            e.Property(x => x.Name).HasMaxLength(120);
+            e.Property(x => x.OwnerId).HasMaxLength(160);
+            e.Property(x => x.Version).IsConcurrencyToken();
+        });
+        mb.Entity<SystemNode>(e =>
+        {
+            e.HasIndex(x => x.NodeId).IsUnique();
+            e.HasIndex(x => x.LastHeartbeatAt);
+            e.Property(x => x.NodeId).HasMaxLength(160);
+            e.Property(x => x.Role).HasMaxLength(60);
+            e.Property(x => x.Version).HasMaxLength(60);
+            e.Property(x => x.MetadataJson).HasMaxLength(2000);
         });
 
         mb.Entity<StockMovement>(e =>

@@ -3,6 +3,8 @@ namespace NinaERP.Application.Common.Interfaces;
 public sealed record DailySalesReport(DateTime Date, decimal GrossSales, decimal Discounts, decimal NetSales, decimal Received, decimal Cancelled, int SalesCount);
 public sealed record ProductSalesReport(Guid ProductId, string Sku, string ProductName, decimal Quantity, decimal GrossSales, decimal NetSales, decimal Cost, decimal Margin);
 public sealed record CashReport(Guid CashSessionId, string RegisterName, DateTime OpenedAt, DateTime? ClosedAt, decimal OpeningAmount, decimal Receipts, decimal Withdrawals, decimal Refunds, decimal ExpectedAmount, decimal? CountedAmount, decimal? Difference);
+public sealed record SellerSalesReport(Guid UserId, string SellerName, int SalesCount, decimal NetSales, decimal AverageTicket);
+public sealed record PaymentMixReport(string Method, int Transactions, decimal GrossCaptured, decimal Refunded, decimal NetReceived);
 public sealed record FinancialSummaryReport(decimal PayablesOpen, decimal ReceivablesOpen, decimal PayablesPaid, decimal ReceivablesReceived, decimal OverduePayables, decimal OverdueReceivables);
 
 public interface IReportingService
@@ -11,4 +13,6 @@ public interface IReportingService
     Task<IReadOnlyList<ProductSalesReport>> GetProductSalesAsync(Guid companyId, DateTime from, DateTime to, int limit, CancellationToken ct);
     Task<IReadOnlyList<CashReport>> GetCashAsync(Guid companyId, DateTime from, DateTime to, int limit, CancellationToken ct);
     Task<FinancialSummaryReport> GetFinancialSummaryAsync(Guid companyId, CancellationToken ct);
+    Task<IReadOnlyList<SellerSalesReport>> GetSellerSalesAsync(Guid companyId, DateTime from, DateTime to, int limit, CancellationToken ct);
+    Task<IReadOnlyList<PaymentMixReport>> GetPaymentMixAsync(Guid companyId, DateTime from, DateTime to, CancellationToken ct);
 }

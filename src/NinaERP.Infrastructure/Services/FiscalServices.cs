@@ -37,6 +37,25 @@ public sealed class FiscalService(AppDbContext db, ITaxEngineService taxEngine, 
         x.NfeSeries=input.NfeSeries; x.NfceSeries=input.NfceSeries; x.AllowNfceContingency=input.AllowNfceContingency; x.Enabled=input.Enabled; x.UpdatedAt=DateTime.UtcNow;
         await db.SaveChangesAsync(ct); return Map(x);
     }
+    public async Task<FiscalReadinessDto> GetReadinessAsync(Guid companyId, CancellationToken ct)
+    {
+        var cfg = await db.FiscalConfigurations.AsNoTracking().FirstOrDefaultAsync(x => x.CompanyId == companyId && x.IsActive, ct);
+        var providerName = cfg?.Provider?.Trim() ?? "NotConfigured";
+        var providerRegistered = providers.Any(x => string.Equals(x.Name, providerName, StringComparison.OrdinalIgnoreCase) && x.Name != "NotConfigured");
+        var certificateConfigured = !string.IsNullOrWhiteSpace(cfg?.CertificateThumbprint);
+        var cscConfigured = !string.IsNullOrWhiteSpace(cfg?.NfceCscId) && !string.IsNullOrWhiteSpace(cfg?.NfceCscSecretReference);
+        var activeTaxProfiles = await db.TaxProfiles.AsNoTracking().CountAsync(x => x.CompanyId == companyId && x.Status == TaxProfileStatus.Active && x.IsActive, ct);
+        var pendingDocuments = await db.Invoices.AsNoTracking().CountAsync(x => x.CompanyId == companyId && x.IsActive && x.Status != InvoiceStatus.Authorized && x.Status != InvoiceStatus.Cancelled, ct);
+        var reasons = new List<string>();
+        if (cfg is null || !cfg.Enabled) reasons.Add("Configuração fiscal ainda não está habilitada.");
+        if (!providerRegistered) reasons.Add("Nenhum provedor fiscal real está registrado para a empresa.");
+        if (!certificateConfigured) reasons.Add("Certificado digital não configurado por thumbprint.");
+        if (activeTaxProfiles == 0) reasons.Add("Nenhum perfil tributário ativo foi configurado.");
+        if (cfg?.Environment == FiscalEnvironment.Production && !cscConfigured) reasons.Add("CSC da NFC-e não está completamente configurado para produção quando aplicável.");
+        var canAttempt = cfg is { Enabled: true } && providerRegistered && certificateConfigured && activeTaxProfiles > 0;
+        return new(cfg?.Enabled == true, providerName, cfg?.Environment ?? FiscalEnvironment.Homologation, providerRegistered, certificateConfigured, cscConfigured, activeTaxProfiles, pendingDocuments, canAttempt, reasons);
+    }
+
     public async Task<FiscalDashboardDto> GetDashboardAsync(Guid companyId, CancellationToken ct)
     {
         var q = db.Invoices.AsNoTracking().Where(x => x.CompanyId == companyId && x.IsActive);
@@ -52,7 +71,7 @@ public sealed class FiscalService(AppDbContext db, ITaxEngineService taxEngine, 
         idempotencyKey = RequiredIdempotencyKey(idempotencyKey);
         var prior = await db.Invoices.AsNoTracking().FirstOrDefaultAsync(x => x.CompanyId == companyId && x.IdempotencyKey == idempotencyKey, ct);
         if (prior is not null) return Map(prior);
-        var cfg = await db.FiscalConfigurations.AsNoTracking().FirstOrDefaultAsync(x => x.CompanyId == companyId && x.Enabled && x.IsActive, ct) ?? throw new BusinessException("Configuração fiscal habilitada não encontrada.");
+        var cfg = await db.FiscalConfigurations.AsNoTracking().FirstOrDefaultAsync(x => x.CompanyId == companyId && x.Status == TaxProfileStatus.Active && x.IsActive, ct) ?? throw new BusinessException("Configuração fiscal habilitada não encontrada.");
         if (string.IsNullOrWhiteSpace(cfg.CertificateThumbprint)) throw new BusinessException("Configure o certificado no Windows Certificate Store por thumbprint.");
         var provider = providers.FirstOrDefault(x => string.Equals(x.Name, cfg.Provider, StringComparison.OrdinalIgnoreCase)) ?? providers.First(x => x.Name == "NotConfigured");
         var sale = await db.Sales.AsNoTracking().Include(x => x.Client).Include(x => x.Items).ThenInclude(x => x.Product).FirstOrDefaultAsync(x => x.Id == saleId && x.CompanyId == companyId && x.IsActive, ct) ?? throw new BusinessException("Venda não encontrada.");
@@ -163,7 +182,7 @@ public sealed class FiscalService(AppDbContext db, ITaxEngineService taxEngine, 
             x.FromNumber <= toNumber && x.ToNumber >= fromNumber, ct);
         if (overlap) throw new BusinessException("A faixa solicitada se sobrepõe a outra inutilização já registrada ou em processamento.");
 
-        var cfg = await db.FiscalConfigurations.AsNoTracking().FirstOrDefaultAsync(x => x.CompanyId == companyId && x.Enabled && x.IsActive, ct)
+        var cfg = await db.FiscalConfigurations.AsNoTracking().FirstOrDefaultAsync(x => x.CompanyId == companyId && x.Status == TaxProfileStatus.Active && x.IsActive, ct)
             ?? throw new BusinessException("Configuração fiscal habilitada não encontrada.");
         if (string.IsNullOrWhiteSpace(cfg.CertificateThumbprint)) throw new BusinessException("Certificado fiscal não configurado.");
         var provider = providers.FirstOrDefault(x => string.Equals(x.Name, cfg.Provider, StringComparison.OrdinalIgnoreCase))
@@ -234,7 +253,7 @@ public sealed class FiscalService(AppDbContext db, ITaxEngineService taxEngine, 
     private async Task<(Invoice Invoice, FiscalConfiguration Cfg, IFiscalProvider Provider, FiscalProviderRequest Request)> LoadOperationAsync(Guid companyId, Guid invoiceId, CancellationToken ct)
     {
         var invoice = await db.Invoices.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == invoiceId && x.CompanyId == companyId && x.IsActive, ct) ?? throw new BusinessException("Documento fiscal não encontrado.");
-        var cfg = await db.FiscalConfigurations.AsNoTracking().FirstOrDefaultAsync(x => x.CompanyId == companyId && x.Enabled && x.IsActive, ct) ?? throw new BusinessException("Configuração fiscal não encontrada.");
+        var cfg = await db.FiscalConfigurations.AsNoTracking().FirstOrDefaultAsync(x => x.CompanyId == companyId && x.Status == TaxProfileStatus.Active && x.IsActive, ct) ?? throw new BusinessException("Configuração fiscal não encontrada.");
         var provider = providers.FirstOrDefault(x => string.Equals(x.Name, invoice.Provider, StringComparison.OrdinalIgnoreCase)) ?? providers.First(x => x.Name == "NotConfigured");
         if (string.IsNullOrWhiteSpace(cfg.CertificateThumbprint)) throw new BusinessException("Certificado fiscal não configurado.");
         var request = new FiscalProviderRequest(companyId, invoice.Id, invoice.SaleId ?? Guid.Empty, invoice.Model, invoice.Environment, invoice.Series, invoice.Number, invoice.IdempotencyKey, cfg.CertificateThumbprint!, cfg.AllowNfceContingency, Array.Empty<TaxCalculationResult>());

@@ -7,6 +7,14 @@ export interface Readiness {
   commercialCore: { users: number; products: number; clients: number; openCashSessions: number; failedOutbox: number }
   fiscal: { configured: boolean; provider: string; activeTaxProfiles: number }
   payments: { configuredAdapters: string[] }
+  expansion: {
+    pendingApprovals: number
+    channelOrders: number
+    rejectedChannelOrders: number
+    blockedAssistantInteractions24h: number
+    healthyClusterNodes: number
+  }
+  runtime: { framework: string; processArchitecture: string; os: string }
   security: {
     sessionCookieHttpOnly: boolean
     csrfHeaderGuard: boolean

@@ -68,6 +68,26 @@ for p in list(ROOT.rglob('*.cs'))+list(ROOT.rglob('*.json'))+list(ROOT.rglob('*.
         if '${{' in value or '${' in value: continue
         findings.append(f'{p.relative_to(ROOT)}:{m.group(1)}')
 check('no obvious hard-coded application secrets', not findings, ', '.join(findings[:10]))
+
+# Stages 20-30 expansion security controls.
+assistant_controller=read('src/NinaERP.API/Controllers/AssistantController.cs')
+omni_controller=read('src/NinaERP.API/Controllers/OmnichannelController.cs')
+assistant_service=read('src/NinaERP.Infrastructure/Services/AssistantService.cs')
+approval_service=read('src/NinaERP.Infrastructure/Services/ApprovalService.cs')
+mobile_service=read('src/NinaERP.Infrastructure/Services/MobileService.cs')
+cluster_service=read('src/NinaERP.Infrastructure/Services/ClusterCoordinationService.cs')
+check('assistant has dedicated rate limit', 'AddPolicy("assistant"' in program and 'EnableRateLimiting("assistant")' in assistant_controller)
+check('assistant request body is size limited', 'RequestSizeLimit(16_384)' in assistant_controller)
+check('assistant audit stores question hash instead of raw prompt', 'SHA256.HashData' in assistant_service and 'QuestionHash' in assistant_service and 'question,' not in assistant_service.split('new AssistantInteraction',1)[-1].split('}',1)[0])
+check('assistant blocks autonomous sensitive operations', 'SensitiveVerbs' in assistant_service and 'blocked-sensitive-action' in assistant_service)
+check('omnichannel endpoint is rate and size limited', 'EnableRateLimiting("omnichannel")' in omni_controller and 'RequestSizeLimit(262_144)' in omni_controller)
+check('omnichannel service is tenant scoped', 'x.CompanyId == companyId' in read('src/NinaERP.Infrastructure/Services/OmnichannelService.cs'))
+check('approval flow enforces four-eyes', 'request.RequestedByUserId == userId' in approval_service and 'CanDecide' in approval_service)
+check('approval resource ownership is validated', 'ValidateResourceAsync' in approval_service and 'x.CompanyId == companyId' in approval_service)
+check('mobile projections are tenant scoped', mobile_service.count('x.CompanyId == companyId') >= 5)
+check('distributed lease has optimistic concurrency handling', 'DbUpdateConcurrencyException' in cluster_service and 'ExpiresAt' in cluster_service)
+check('PWA service worker never caches API responses', "url.pathname.startsWith('/api/')" in read('frontend/public/sw.js'))
+
 passed=sum(ok for _,ok,_ in checks); failed=len(checks)-passed
 out=ROOT/'artifacts/local'; out.mkdir(parents=True,exist_ok=True)
 report={'status':'PASS' if failed==0 else 'FAIL','passed':passed,'failed':failed,'checks':[{'name':n,'status':'PASS' if ok else 'FAIL','detail':d} for n,ok,d in checks]}

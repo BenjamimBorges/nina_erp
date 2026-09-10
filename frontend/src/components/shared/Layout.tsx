@@ -1,13 +1,14 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/auth'
-import { Home, Package, Users, Truck, LogOut, ShoppingCart, WalletCards, Landmark, ReceiptText, FileBarChart, Boxes, Settings, ShieldCheck, Activity, type LucideIcon } from 'lucide-react'
+import { Home, Package, Users, Truck, LogOut, ShoppingCart, WalletCards, Landmark, ReceiptText, FileBarChart, Boxes, Settings, ShieldCheck, Activity, GitMerge, Smartphone, CheckCircle2, BrainCircuit, BarChart3, type LucideIcon } from 'lucide-react'
 
 type NavItem = { to: string; icon: LucideIcon; label: string; roles?: string[] }
 
 const nav: NavItem[]=[
  {to:'/dashboard',icon:Home,label:'Dashboard'}, {to:'/pos',icon:ShoppingCart,label:'PDV / Vendas'}, {to:'/stock',icon:Boxes,label:'Estoque'},
  {to:'/cash',icon:WalletCards,label:'Caixa e pagamentos'}, {to:'/purchases',icon:Truck,label:'Compras'}, {to:'/finance',icon:Landmark,label:'Financeiro'},
- {to:'/fiscal',icon:ReceiptText,label:'Central Fiscal'}, {to:'/reports',icon:FileBarChart,label:'Relatórios'},
+ {to:'/fiscal',icon:ReceiptText,label:'Central Fiscal'}, {to:'/reports',icon:FileBarChart,label:'Relatórios'}, {to:'/bi',icon:BarChart3,label:'BI avançado',roles:['Admin','Manager']},
+ {to:'/omnichannel',icon:GitMerge,label:'Omnichannel',roles:['Admin','Manager']}, {to:'/approvals',icon:CheckCircle2,label:'Aprovações'}, {to:'/assistant',icon:BrainCircuit,label:'Assistente Nina'}, {to:'/mobile',icon:Smartphone,label:'Nina Mobile'},
  {to:'/cadastro-produto',icon:Package,label:'Produtos'}, {to:'/clients',icon:Users,label:'Clientes'}, {to:'/suppliers',icon:Truck,label:'Fornecedores'},
  {to:'/users',icon:ShieldCheck,label:'Usuários',roles:['Admin']}, {to:'/quality',icon:Activity,label:'Qualidade',roles:['Admin']}, {to:'/settings',icon:Settings,label:'Configurações'}]
 

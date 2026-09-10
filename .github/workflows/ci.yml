@@ -43,11 +43,20 @@ jobs:
       Seed__DemoData: 'false'
       ASPNETCORE_ENVIRONMENT: Homologation
       NINAERP_HOMOLOGATION_CNPJ: 12.345.678/0001-95
+      Features__Omnichannel: 'true'
+      Features__MobileApi: 'true'
+      Features__Approvals: 'true'
+      Features__AdvancedBI: 'true'
+      Features__Assistant: 'true'
+      Features__DistributedScale: 'true'
+      Distributed__HeartbeatSeconds: '5'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.401
+          cache: true
+          cache-dependency-path: '**/*.csproj'
       - name: Static engineering/security/data contracts
         shell: bash
         run: |
@@ -66,23 +75,29 @@ jobs:
           dotnet run --project src/NinaERP.API/NinaERP.API.csproj -c Release --no-build -- --seed-homologation
           dotnet run --project src/NinaERP.API/NinaERP.API.csproj -c Release --no-build --urls http://127.0.0.1:7000 > artifacts/ci/api.log 2>&1 &
           api_pid=$!
-          trap 'kill $api_pid 2>/dev/null || true' EXIT
-          healthy=0
-          for attempt in {1..40}; do
-            if curl --fail --silent http://127.0.0.1:7000/health > artifacts/ci/health.json; then
-              healthy=1
-              break
-            fi
+          dotnet run --project src/NinaERP.API/NinaERP.API.csproj -c Release --no-build --urls http://127.0.0.1:7001 > artifacts/ci/api-replica.log 2>&1 &
+          replica_pid=$!
+          trap 'kill $api_pid $replica_pid 2>/dev/null || true' EXIT
+          primary_healthy=0
+          replica_healthy=0
+          for attempt in {1..50}; do
+            if curl --fail --silent http://127.0.0.1:7000/health > artifacts/ci/health.json; then primary_healthy=1; fi
+            if curl --fail --silent http://127.0.0.1:7001/health > artifacts/ci/health-replica.json; then replica_healthy=1; fi
+            if [[ "$primary_healthy" == "1" && "$replica_healthy" == "1" ]]; then break; fi
             sleep 1
           done
-          if [[ "$healthy" != "1" ]]; then
-            cat artifacts/ci/api.log
+          if [[ "$primary_healthy" != "1" || "$replica_healthy" != "1" ]]; then
+            cat artifacts/ci/api.log || true
+            cat artifacts/ci/api-replica.log || true
             exit 1
           fi
           cat artifacts/ci/health.json
+          cat artifacts/ci/health-replica.json
+          sleep 6 # permite ao heartbeat das duas instâncias registrar os nós antes do smoke de cluster
           # Ordem intencional: o teste de segurança satura o rate limiter de login e roda por último.
           scripts/functional/api-homologation-smoke.sh
           python3 scripts/functional/api-transaction-e2e.py
+          python3 scripts/functional/api-expansion-smoke.py
           python3 scripts/load/api-load-smoke.py
           scripts/security/api-security-smoke.sh
       - name: Upload backend gate evidence
@@ -148,8 +163,8 @@ jobs:
       - name: Create release integrity manifest and package
         shell: pwsh
         run: |
-          python scripts/release/create-manifest.py artifacts/windows --version 0.2.0-hml --channel candidate
-          python scripts/release/package-release.py artifacts/windows --version 0.2.0-hml --output-dir artifacts/release
+          python scripts/release/create-manifest.py artifacts/windows --version 0.3.0-hml --channel candidate
+          python scripts/release/package-release.py artifacts/windows --version 0.3.0-hml --output-dir artifacts/release
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:

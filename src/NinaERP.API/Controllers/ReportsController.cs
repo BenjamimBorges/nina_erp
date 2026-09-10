@@ -11,4 +11,6 @@ public sealed class ReportsController(IReportingService reports):ControllerBase
     [HttpGet("products")] public async Task<IActionResult> Products([FromQuery]DateTime from,[FromQuery]DateTime to,[FromQuery]int limit=100,CancellationToken ct=default)=>Ok(ApiResponse<object>.Ok(await reports.GetProductSalesAsync(CompanyId,from,to,limit,ct)));
     [HttpGet("cash")] public async Task<IActionResult> Cash([FromQuery]DateTime from,[FromQuery]DateTime to,[FromQuery]int limit=100,CancellationToken ct=default)=>Ok(ApiResponse<object>.Ok(await reports.GetCashAsync(CompanyId,from,to,limit,ct)));
     [HttpGet("financial-summary")] public async Task<IActionResult> Financial(CancellationToken ct)=>Ok(ApiResponse<object>.Ok(await reports.GetFinancialSummaryAsync(CompanyId,ct)));
+    [HttpGet("sellers")] public async Task<IActionResult> Sellers([FromQuery]DateTime from,[FromQuery]DateTime to,[FromQuery]int limit=100,CancellationToken ct=default)=>Ok(ApiResponse<object>.Ok(await reports.GetSellerSalesAsync(CompanyId,from,to,limit,ct)));
+    [HttpGet("payment-mix")] public async Task<IActionResult> PaymentMix([FromQuery]DateTime from,[FromQuery]DateTime to,CancellationToken ct=default)=>Ok(ApiResponse<object>.Ok(await reports.GetPaymentMixAsync(CompanyId,from,to,ct)));
 }

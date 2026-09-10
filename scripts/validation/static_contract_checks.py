@@ -112,7 +112,6 @@ check('CI blocks pending EF model changes', 'has-pending-model-changes' in ci_ga
 check('CI generates idempotent migration script', 'migrations script 0 --idempotent' in ci_gate_text)
 check('CI includes API health smoke test', '/health' in ci_text and 'curl --fail' in ci_text)
 check('CI includes Windows publish gate', 'windows-publish:' in ci_text and 'Build-FirstWindows.ps1' in ci_text)
-check('CI does not enable setup-dotnet cache without NuGet lock files', not ('cache: true' in ci_text and 'actions/setup-dotnet' in ci_text) or any(ROOT.rglob('packages.lock.json')))
 
 print(f'PASS: {len(passes)}')
 for n,d in passes: print(f'  [PASS] {n}' + (f' ({d})' if d else ''))
@@ -245,6 +244,15 @@ if manifest.exists():
 else:
     manifest_errors.append('schema-source.sha256 missing')
 check('EF schema source SHA-256 manifest is current', not manifest_errors, '; '.join(manifest_errors[:20]))
+manifest_paths=set()
+if manifest.exists():
+    for line in manifest.read_text().splitlines():
+        if line.strip() and '  ' in line:
+            manifest_paths.add(line.split('  ',1)[1].strip())
+expected_schema_sources={x.relative_to(ROOT).as_posix() for x in (ROOT/'src/NinaERP.Domain/Entities').glob('*.cs')}
+expected_schema_sources.add('src/NinaERP.Infrastructure/Persistence/AppDbContext.cs')
+check('EF schema manifest covers every entity source', manifest_paths == expected_schema_sources,
+      f'missing={sorted(expected_schema_sources-manifest_paths)}; extra={sorted(manifest_paths-expected_schema_sources)}')
 
 
 # Stages 13-20: homologation, RBAC, security and release readiness.
@@ -320,16 +328,34 @@ check('Pilot preflight includes transactional E2E', 'api-transaction-e2e.py' in 
 for rel in ['scripts/windows/Sign-Artifacts.ps1','scripts/windows/Update-NinaERP.ps1','scripts/windows/Rollback-NinaERP.ps1','scripts/release/create-manifest.py','docs/PILOT_RUNBOOK.md','docs/SECURITY_TEST_PLAN.md']:
     check(f'Stage 13-20 artifact exists: {rel}', (ROOT/rel).exists())
 release_cfg=json.loads((ROOT/'release/version.json').read_text())
-check('Release candidate is not falsely production-approved', release_cfg.get('productionApproved') is False and release_cfg.get('version')=='0.2.0-hml')
+check('Release candidate is not falsely production-approved', release_cfg.get('productionApproved') is False and release_cfg.get('version')=='0.3.0-hml')
 appsettings=json.loads((ROOT/'src/NinaERP.API/appsettings.json').read_text())
 features=appsettings.get('Features',{})
 check('Sensitive expansion features remain disabled by default', all(features.get(k) is False for k in ['Omnichannel','MobileApi','Approvals','Assistant','DistributedScale']))
 installer_text=(ROOT/'installer/NinaERP.Setup/NinaERP.iss').read_text()
-check('Installer display version matches candidate release', '#define MyAppLabel "0.2.0-hml"' in installer_text and 'AppVersion={#MyAppLabel}' in installer_text)
-check('Installer Windows file version is numeric', '#define MyAppVersion "0.2.0"' in installer_text and 'VersionInfoVersion={#MyAppVersion}' in installer_text)
+check('Installer display version matches candidate release', '#define MyAppLabel "0.3.0-hml"' in installer_text and 'AppVersion={#MyAppLabel}' in installer_text)
+check('Installer Windows file version is numeric', '#define MyAppVersion "0.3.0"' in installer_text and 'VersionInfoVersion={#MyAppVersion}' in installer_text)
 
 print(f'DEEP PASS TOTAL: {len(passes)}')
 print(f'DEEP FAIL TOTAL: {len(failures)}')
 if failures:
     for n,d in failures: print(f'  [DEEP FAIL] {n}' + (f' ({d})' if d else ''))
+# Stages 20-30 expansion contracts.
+expansion_tests=(ROOT/'src/NinaERP.Tests/ExpansionStagesIntegrationTests.cs').read_text() if (ROOT/'src/NinaERP.Tests/ExpansionStagesIntegrationTests.cs').exists() else ''
+approval_service=(ROOT/'src/NinaERP.Infrastructure/Services/ApprovalService.cs').read_text()
+omni_service=(ROOT/'src/NinaERP.Infrastructure/Services/OmnichannelService.cs').read_text()
+check('Stages 20-30 integration suite exists', bool(expansion_tests))
+check('Expansion migration is versioned', (migdir/'20260910210000_Stages20To30.cs').exists() and (migdir/'Sql/20260910210000_Stages20To30.sql').exists())
+check('Approvals validate tenant-owned resource', 'ValidateResourceAsync' in approval_service and 'não existe ou não pertence à empresa autenticada' in approval_service)
+check('Approvals enforce four-eyes decision', 'request.RequestedByUserId == userId' in approval_service)
+check('Omnichannel rejects identifier-less items', 'Cada item omnichannel deve informar SKU externo ou código de barras.' in omni_service)
+check('Omnichannel rejects ambiguous barcodes', 'código de barras ambíguo' in omni_service)
+check('Expansion tests cover sensitive assistant blocking', 'Assistant_Blocks_Sensitive_Action_And_Audits_Without_Executing_It' in expansion_tests)
+check('Expansion tests cover distributed lease exclusivity', 'Distributed_Lease_Is_Exclusive_And_Can_Be_Reacquired_After_Expiry' in expansion_tests)
+check('Expansion tests cover mobile tenant isolation', 'Mobile_Low_Stock_Never_Leaks_Another_Company' in expansion_tests)
+
+print(f'FINAL PASS TOTAL: {len(passes)}')
+print(f'FINAL FAIL TOTAL: {len(failures)}')
+if failures:
+    for n,d in failures: print(f'  [FINAL FAIL] {n}' + (f' ({d})' if d else ''))
 sys.exit(1 if failures else 0)

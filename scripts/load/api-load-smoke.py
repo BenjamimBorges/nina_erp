@@ -18,7 +18,7 @@ with opener.open(req, timeout=10) as r:
 cookie_header='; '.join(f'{c.name}={c.value}' for c in jar)
 if 'ninaerp_session=' not in cookie_header: raise SystemExit('cookie de sessão HttpOnly não foi recebido')
 headers={'Cookie':cookie_header,'X-Requested-With':'XMLHttpRequest'}
-paths=['/api/dashboard','/api/products','/api/clients','/api/inventory/balances','/api/sales']
+paths=['/api/dashboard','/api/products','/api/clients','/api/inventory/balances','/api/sales','/api/reports/financial-summary','/api/bi/executive?months=12','/api/mobile/summary','/api/omnichannel/catalog?limit=100']
 
 def hit(i):
     started=time.perf_counter(); status=0

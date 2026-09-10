@@ -32,6 +32,12 @@ public static class DependencyInjection
         services.AddScoped<IFiscalService, FiscalService>();
         services.AddSingleton<IFiscalProvider, NotConfiguredFiscalProvider>();
         services.AddScoped<IReportingService, ReportingService>();
+        services.AddScoped<IApprovalService, ApprovalService>();
+        services.AddScoped<IOmnichannelService, OmnichannelService>();
+        services.AddScoped<IMobileService, MobileService>();
+        services.AddScoped<IAdvancedBiService, AdvancedBiService>();
+        services.AddScoped<IAssistantService, AssistantService>();
+        services.AddScoped<IClusterCoordinationService, ClusterCoordinationService>();
         services.AddSingleton<IPointOfSaleDeviceService, PointOfSaleDeviceService>();
         services.AddScoped<PostgresHealthCheck>();
         return services;

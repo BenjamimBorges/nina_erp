@@ -37,7 +37,8 @@ public sealed class PostgresIntegrationTests
             "CashRegisters", "CashSessions", "CashMovements", "PaymentTransactions",
             "Warehouses", "InventoryBalances", "InventoryReservations", "PurchaseOrders",
             "FinancialTitles", "TaxProfiles", "FiscalConfigurations", "FiscalNumberVoids",
-            "TaxGuides", "IdempotencyRecords", "OutboxMessages"
+            "TaxGuides", "IdempotencyRecords", "OutboxMessages", "ApprovalRequests",
+            "ChannelOrders", "ChannelOrderItems", "AssistantInteractions", "DistributedLeases", "SystemNodes"
         };
         foreach (var table in requiredTables)
             Assert.True(await RelationExistsAsync(db, table, "BASE TABLE"), $"Tabela {table} ausente após migration.");
@@ -46,7 +47,8 @@ public sealed class PostgresIntegrationTests
         {
             "vw_sales_daily", "vw_seller_sales", "vw_product_sales", "vw_inventory_balances",
             "vw_stock_movements", "vw_cash_sessions", "vw_payments", "vw_accounts_payable",
-            "vw_accounts_receivable", "vw_fiscal_documents", "vw_tax_guides", "vw_financial_summary"
+            "vw_accounts_receivable", "vw_fiscal_documents", "vw_tax_guides", "vw_financial_summary",
+            "vw_bi_seller_monthly", "vw_bi_payment_mix_monthly"
         };
         foreach (var view in requiredViews)
             Assert.True(await RelationExistsAsync(db, view, "VIEW"), $"View {view} ausente após migration.");
@@ -118,7 +120,7 @@ public sealed class PostgresIntegrationTests
         db.AddRange(company, register, warehouse, product);
         await db.SaveChangesAsync();
 
-        var cash = new CashManagementService(db);
+        var cash = new CashManagementService(db, new ApprovalService(db));
         var session = await cash.OpenSessionAsync(company.Id, userId, register.Id, 100m, $"open-{Guid.NewGuid():N}", CancellationToken.None);
 
         var sale = new Sale

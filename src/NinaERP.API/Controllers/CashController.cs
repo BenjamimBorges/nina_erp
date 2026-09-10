@@ -16,7 +16,7 @@ public sealed class CashController(ICashManagementService cash) : ControllerBase
     public sealed record RegisterRequest(string Code, string Name);
     public sealed record OpenRequest(Guid CashRegisterId, decimal OpeningAmount, string IdempotencyKey);
     public sealed record CloseRequest(decimal CountedAmount, string? Notes, string IdempotencyKey);
-    public sealed record MovementRequest(CashMovementType Type, decimal Amount, string Description, string IdempotencyKey);
+    public sealed record MovementRequest(CashMovementType Type, decimal Amount, string Description, string IdempotencyKey, Guid? ApprovalRequestId = null);
 
     [HttpGet("registers")]
     public async Task<IActionResult> Registers(CancellationToken ct) =>
@@ -40,7 +40,7 @@ public sealed class CashController(ICashManagementService cash) : ControllerBase
 
     [HttpPost("session/{id:guid}/movement"), Authorize(Policy = "CommercialWrite")]
     public async Task<IActionResult> Movement(Guid id, MovementRequest r, CancellationToken ct) =>
-        Ok(ApiResponse<object>.Ok(await cash.AddMovementAsync(CompanyId, UserId, id, r.Type, r.Amount, r.Description, r.IdempotencyKey, ct)));
+        Ok(ApiResponse<object>.Ok(await cash.AddMovementAsync(CompanyId, UserId, id, r.Type, r.Amount, r.Description, r.IdempotencyKey, r.ApprovalRequestId, ct)));
 
     [HttpGet("session/{id:guid}/movements")]
     public async Task<IActionResult> Movements(Guid id, CancellationToken ct) =>

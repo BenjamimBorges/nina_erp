@@ -219,3 +219,43 @@ public enum OutboxMessageStatus
     Processed = 2,
     Failed = 3
 }
+
+public enum ApprovalType
+{
+    Discount = 0,
+    PurchaseOrder = 1,
+    CashMovement = 2,
+    PaymentRefund = 3,
+    SaleCancellation = 4,
+    FinancialSettlement = 5,
+    FiscalException = 6,
+    UserPrivilege = 7
+}
+
+public enum ApprovalStatus
+{
+    Pending = 0,
+    Approved = 1,
+    Rejected = 2,
+    Cancelled = 3,
+    Expired = 4
+}
+
+public enum SalesChannel
+{
+    Internal = 0,
+    Ecommerce = 1,
+    Marketplace = 2,
+    WhatsApp = 3,
+    Mobile = 4,
+    Api = 5
+}
+
+public enum ChannelOrderStatus
+{
+    Received = 0,
+    Validated = 1,
+    Rejected = 2,
+    Imported = 3,
+    Cancelled = 4
+}

@@ -1,8 +1,8 @@
 {
   "product": "Nina ERP",
-  "version": "0.2.0-hml",
+  "version": "0.3.0-hml",
   "channel": "candidate",
-  "schemaBaseline": "stages-00-12",
-  "qualityStage": "13-20",
+  "schemaBaseline": "stages-00-30",
+  "qualityStage": "20-30",
   "productionApproved": false
 }

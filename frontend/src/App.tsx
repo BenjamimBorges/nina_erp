@@ -19,6 +19,11 @@ import ReportsPage from './pages/operations/ReportsPage'
 import SettingsPage from './pages/operations/SettingsPage'
 import UsersPage from './pages/admin/UsersPage'
 import QualityPage from './pages/operations/QualityPage'
+import ApprovalsPage from './pages/operations/ApprovalsPage'
+import OmnichannelPage from './pages/operations/OmnichannelPage'
+import BiPage from './pages/operations/BiPage'
+import AssistantPage from './pages/operations/AssistantPage'
+import MobilePage from './pages/operations/MobilePage'
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, initialized } = useAuthStore()
@@ -68,6 +73,11 @@ export default function App() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="quality" element={<QualityPage />} />
+        <Route path="approvals" element={<ApprovalsPage />} />
+        <Route path="omnichannel" element={<OmnichannelPage />} />
+        <Route path="bi" element={<BiPage />} />
+        <Route path="assistant" element={<AssistantPage />} />
+        <Route path="mobile" element={<MobilePage />} />
       </Route>
     </Routes>
   )

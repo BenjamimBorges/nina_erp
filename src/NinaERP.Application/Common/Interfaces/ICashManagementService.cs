@@ -18,6 +18,6 @@ public interface ICashManagementService
     Task<CashSessionDto?> GetOpenSessionAsync(Guid companyId, Guid userId, CancellationToken ct);
     Task<CashSessionDto> OpenSessionAsync(Guid companyId, Guid userId, Guid cashRegisterId, decimal openingAmount, string idempotencyKey, CancellationToken ct);
     Task<CashSessionDto> CloseSessionAsync(Guid companyId, Guid userId, Guid sessionId, decimal countedAmount, string? notes, string idempotencyKey, CancellationToken ct);
-    Task<CashMovementDto> AddMovementAsync(Guid companyId, Guid userId, Guid sessionId, CashMovementType type, decimal amount, string description, string idempotencyKey, CancellationToken ct);
+    Task<CashMovementDto> AddMovementAsync(Guid companyId, Guid userId, Guid sessionId, CashMovementType type, decimal amount, string description, string idempotencyKey, Guid? approvalRequestId, CancellationToken ct);
     Task<IReadOnlyList<CashMovementDto>> GetMovementsAsync(Guid companyId, Guid sessionId, CancellationToken ct);
 }

@@ -1,6 +1,6 @@
 {
   "name": "nina-erp-retail-frontend",
-  "version": "1.0.0",
+  "version": "0.3.0-hml",
   "type": "module",
   "scripts": {
     "dev": "vite",

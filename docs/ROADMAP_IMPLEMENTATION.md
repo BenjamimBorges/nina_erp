@@ -49,22 +49,22 @@ Só marcar “PRIMEIRA BUILD WINDOWS” quando todos forem verdadeiros:
 | 17 | Auditoria/permissões | 🟡 | Policies por perfil e audit log de escritas implementados. Falta matriz granular por permissão, trilha de antes/depois e UI administrativa. |
 | 18 | Compras | ⬜ | Pedido de compra, recebimento parcial, custo/estoque, fornecedor, contas a pagar. |
 | 19 | Financeiro | ⬜ | Contas a pagar/receber, plano de contas, centros de custo, fluxo de caixa, conciliação. |
-| 20 | Dashboard/relatórios | 🟡 | Dashboard básico existente. Evoluir somente após estoque/venda/caixa/financeiro terem fontes confiáveis. |
-| 21 | Fiscal | 🟡 estrutural | Entidades fiscais já existem, mas **não é fiscal homologado**. Implementar NFe/NFCe, certificado, CSC, SEFAZ, contingência, inutilização/cancelamento e homologação por UF. |
-| 22 | Testes de integração | 🟡 | Unit tests ampliados + smoke test HTTP. Próximo: Testcontainers/PostgreSQL real e testes API ponta a ponta no CI. |
-| 23 | .NET 8 → .NET 10 | ⬜ **antecipar** | Executar imediatamente após estabilizar 01–10, não esperar o fiscal. .NET 8 encerra suporte em 10/11/2026. |
-| 24 | Hardening + atualização automática | 🟡 | Já: secret validation, ACL config, policies, rate limit, audit, health, logs. Falta updater assinado, TLS/HTTPS conforme cenário, rotação de segredo, política de backup, telemetria, assinatura Authenticode. |
+| 20 | Dashboard/relatórios | ✅/🧪 | Reporting tenant-scoped, relatórios por vendedor/mix de pagamentos e UI implementados; conciliação PostgreSQL real fica no CI. |
+| 21 | Fiscal | ✅ estrutural/🧪 | Readiness, idempotência, numeração, inutilização/cancelamento e prova de autorização implementados; provider/certificado/SEFAZ real ainda exige homologação. |
+| 22 | Testes de integração | ✅/🧪 | Suíte PostgreSQL, migrations vazio/legado, smoke HTTP, segurança, carga e expansão 20–30 integrados ao CI PostgreSQL 17. Execução local depende de runner com .NET/PostgreSQL. |
+| 23 | .NET 8 → .NET 10 | ✅ | Solução consolidada em .NET 10, SDK 10.0.401/feature band 10.0.4xx e EF/Npgsql linha 10. |
+| 24 | Hardening + atualização automática | ✅/🧪 | Cookie HttpOnly/CSRF/CSP, revogação de sessão, rate limits, manifesto/assinatura, backup pré-update e rollback implementados; assinatura/TLS/update real aguardam VM. |
 
 ## Marco C — primeira versão comercial expandida
 
 | # | Item | Estado | Direção |
 |---:|---|---|---|
-| 25 | Omnichannel | ⬜ | Criar APIs/eventos estáveis antes de marketplaces/e-commerce. |
-| 26 | Apps móveis | ⬜ | Preferir API existente + app focado em tarefas; não duplicar regra de negócio. |
-| 27 | Aprovações | ⬜ | Workflow para desconto, compra, pagamento, cancelamento e outras exceções. |
-| 28 | BI avançado | ⬜ | Read models/materialized views/data mart depois que o modelo transacional estabilizar. |
-| 29 | Assistente/IA | ⬜ | IA como camada de consulta/assistência com permissões e auditoria; nunca como fonte de verdade contábil/fiscal. |
-| 30 | Escala distribuída | ⬜ | Só com métricas: Redis, fila/event bus, outbox, workers, réplicas e eventualmente serviços separados. |
+| 25 | Omnichannel | ✅ fundação | Pedido/catálogo normalizados, idempotência, hash/replay e tenant implementados; adapters reais de canais continuam futuros. |
+| 26 | Apps móveis | ✅ fundação | API móvel + PWA reutilizam o núcleo central; service worker não cacheia API. |
+| 27 | Aprovações | ✅ fundação | Workflow idempotente, ownership, perfis mínimos, expiração e quatro-olhos implementados com API/UI. |
+| 28 | BI avançado | ✅ fundação | Read models mensais/vendedores, refresh e endpoints executivos isolados por empresa. |
+| 29 | Assistente/IA | ✅ fundação | Assistente consultivo, auditado, rate-limited e bloqueado para execução autônoma fiscal/estoque/pagamentos. |
+| 30 | Escala distribuída | ✅ fundação/🧪 | Heartbeat, nós e leases PostgreSQL implementados; CI multinó preparado. Redis/broker/réplicas somente com métricas que justifiquem. |
 
 # Ordem que recomendo a partir desta entrega
 
