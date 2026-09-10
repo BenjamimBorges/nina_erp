@@ -10,6 +10,14 @@ import CadastroProdutoPage from './pages/admin/CadastroProdutoPage'
 import ClientsPage from './pages/admin/ClientsPage'
 import SuppliersPage from './pages/admin/SuppliersPage'
 import StockPage from './pages/stock/StockPage'
+import PosPage from './pages/sales/PosPage'
+import CashPage from './pages/operations/CashPage'
+import PurchasesPage from './pages/operations/PurchasesPage'
+import FinancePage from './pages/operations/FinancePage'
+import FiscalPage from './pages/operations/FiscalPage'
+import ReportsPage from './pages/operations/ReportsPage'
+import SettingsPage from './pages/operations/SettingsPage'
+
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuthStore()
@@ -41,6 +49,13 @@ export default function App() {
         <Route path="clients" element={<ClientsPage />} />
         <Route path="suppliers" element={<SuppliersPage />} />
         <Route path="stock" element={<StockPage />} />
+        <Route path="pos" element={<PosPage />} />
+        <Route path="cash" element={<CashPage />} />
+        <Route path="purchases" element={<PurchasesPage />} />
+        <Route path="finance" element={<FinancePage />} />
+        <Route path="fiscal" element={<FiscalPage />} />
+        <Route path="reports" element={<ReportsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
   )

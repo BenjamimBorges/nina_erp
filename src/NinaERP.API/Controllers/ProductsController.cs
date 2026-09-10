@@ -33,6 +33,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "InventoryWrite")]
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateProductCommand cmd, CancellationToken ct)
     {
         var command = cmd with { CompanyId = CompanyId };
@@ -41,16 +42,18 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Policy = "InventoryWrite")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductCommand cmd, CancellationToken ct)
     {
-        await _mediator.Send(cmd with { Id = id }, ct);
+        await _mediator.Send(cmd with { CompanyId = CompanyId, Id = id }, ct);
         return NoContent();
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = "InventoryWrite")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
-        await _mediator.Send(new DeleteProductCommand(id), ct);
+        await _mediator.Send(new DeleteProductCommand(CompanyId, id), ct);
         return NoContent();
     }
 }

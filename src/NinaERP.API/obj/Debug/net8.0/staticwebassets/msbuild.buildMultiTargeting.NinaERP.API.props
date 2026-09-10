@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../build/NinaERP.API.props" />
-</Project>

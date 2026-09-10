@@ -1,0 +1,55 @@
+# .NET
+**/bin/
+**/obj/
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# Vite
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.*
+!docker/.env.example
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+# Build / publish artifacts
+artifacts/
+publish/
+installer/output/
+src/NinaERP.API/wwwroot/
+
+# Visual Studio / Windows
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local configuration / secrets
+appsettings.Local.json
+appsettings.Production.local.json
+*.pfx
+*.p12
+*.pem
+*.key
+
+# Database backups
+backups/
+*.backup
+*.dump
+*.bak
+
+# WebView2 user data
+**/WebView2Data/

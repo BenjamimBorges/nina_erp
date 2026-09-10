@@ -9,7 +9,7 @@ namespace NinaERP.Application.Features.Products.Commands;
 public record CreateProductCommand(
     Guid CompanyId, string Sku, string Name, string Description,
     string Ncm, string Cest, string Unit,
-    decimal PriceSale, decimal PriceMinimum, int StockMin,
+    decimal PriceSale, decimal PriceMinimum, decimal StockMin,
     string Brand, string Department, string Barcode
 ) : IRequest<Guid>;
 

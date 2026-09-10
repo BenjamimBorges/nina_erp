@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NinaERP.Application.Features.Departments.Commands;
 using NinaERP.Application.Features.Departments.Queries;
-using NinaERP.Contracts;
 using NinaERP.Contracts.Responses;
 
 namespace NinaERP.API.Controllers;
@@ -11,36 +10,25 @@ namespace NinaERP.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class DepartmentsController : ControllerBase
+public sealed class DepartmentsController : ControllerBase
 {
-    private readonly IMediator _mediator;
+    private readonly ISender _mediator;
+    public DepartmentsController(ISender mediator) => _mediator = mediator;
 
-    public DepartmentsController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
+    private Guid CompanyId => Guid.Parse(User.FindFirst("companyId")!.Value);
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<IEnumerable<DepartmentResponse>>>> Get()
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<DepartmentResponse>>>> Get(CancellationToken ct)
     {
-        var departments = await _mediator.Send(new GetDepartmentsQuery());
-        return Ok(new ApiResponse<IEnumerable<DepartmentResponse>>
-        {
-            Success = true,
-            Message = "Departamentos recuperados com sucesso",
-            Data = departments
-        });
+        var departments = await _mediator.Send(new GetDepartmentsQuery(CompanyId), ct);
+        return Ok(ApiResponse<IReadOnlyList<DepartmentResponse>>.Ok(departments));
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateDepartmentCommand cmd)
+    [Authorize(Policy = "InventoryWrite")]
+    public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateDepartmentCommand command, CancellationToken ct)
     {
-        var departmentId = await _mediator.Send(cmd);
-        return CreatedAtAction(nameof(Get), new ApiResponse<Guid>
-        {
-            Success = true,
-            Message = "Departamento criado com sucesso",
-            Data = departmentId
-        });
+        var id = await _mediator.Send(command with { CompanyId = CompanyId }, ct);
+        return Created($"/api/departments/{id}", ApiResponse<Guid>.Ok(id, "Departamento criado com sucesso."));
     }
 }

@@ -1,9 +1,9 @@
+using FluentValidation;
 using MediatR;
 using NinaERP.Application.Common.Exceptions;
 using NinaERP.Application.Common.Interfaces;
 using NinaERP.Domain.Entities;
 using NinaERP.Domain.Enums;
-using FluentValidation;
 
 namespace NinaERP.Application.Features.Stock.Commands;
 
@@ -17,9 +17,13 @@ public class AdjustStockValidator : AbstractValidator<AdjustStockCommand>
 {
     public AdjustStockValidator()
     {
+        RuleFor(x => x.CompanyId).NotEmpty();
         RuleFor(x => x.ProductId).NotEmpty();
-        RuleFor(x => x.Qty).GreaterThan(0);
         RuleFor(x => x.CostUnit).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Type).IsInEnum();
+        RuleFor(x => x.Qty)
+            .Must((cmd, qty) => cmd.Type == StockMovementType.Adjustment ? qty != 0 : qty > 0)
+            .WithMessage("Quantidade deve ser maior que zero; em ajustes, pode ser positiva ou negativa.");
     }
 }
 
@@ -33,11 +37,22 @@ public class AdjustStockHandler : IRequestHandler<AdjustStockCommand, Guid>
         var product = await _uow.Products.GetByIdAsync(cmd.ProductId, ct)
             ?? throw new NotFoundException(nameof(Product), cmd.ProductId);
 
-        var delta = cmd.Type == StockMovementType.Entry ? (int)cmd.Qty : -(int)cmd.Qty;
+        if (product.CompanyId != cmd.CompanyId)
+            throw new NotFoundException(nameof(Product), cmd.ProductId);
+
+        var delta = cmd.Type switch
+        {
+            StockMovementType.Entry => cmd.Qty,
+            StockMovementType.Exit => -cmd.Qty,
+            StockMovementType.Loss => -cmd.Qty,
+            StockMovementType.Adjustment => cmd.Qty,
+            StockMovementType.Transfer => throw new BusinessException("Transferência exige estoque de origem e destino e não pode ser lançada como ajuste manual simples."),
+            _ => throw new BusinessException("Tipo de movimentação de estoque inválido.")
+        };
+
         if (product.StockQty + delta < 0)
             throw new BusinessException("Estoque insuficiente para esta operação.");
 
-        // Custo médio ponderado (apenas em entradas)
         if (cmd.Type == StockMovementType.Entry && cmd.CostUnit > 0)
         {
             var totalQty = product.StockQty + cmd.Qty;
@@ -52,11 +67,15 @@ public class AdjustStockHandler : IRequestHandler<AdjustStockCommand, Guid>
 
         var movement = new StockMovement
         {
-            CompanyId = cmd.CompanyId, ProductId = cmd.ProductId,
-            Type = cmd.Type, Qty = cmd.Qty,
-            CostUnit = cmd.CostUnit, OriginType = "Manual",
-            Notes = cmd.Notes
+            CompanyId = cmd.CompanyId,
+            ProductId = cmd.ProductId,
+            Type = cmd.Type,
+            Qty = cmd.Qty,
+            CostUnit = cmd.CostUnit,
+            OriginType = "Manual",
+            Notes = cmd.Notes?.Trim()
         };
+
         await _uow.StockMovements.AddAsync(movement, ct);
         await _uow.CommitAsync(ct);
         return movement.Id;

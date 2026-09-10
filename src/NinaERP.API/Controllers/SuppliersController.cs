@@ -25,9 +25,19 @@ public class SuppliersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "ManagementWrite")]
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateSupplierCommand cmd, CancellationToken ct)
     {
         var id = await _mediator.Send(cmd with { CompanyId = CompanyId }, ct);
         return Created($"/api/suppliers/{id}", ApiResponse<Guid>.Ok(id, "Fornecedor criado com sucesso."));
+    }
+
+
+    [HttpPut("{id}")]
+    [Authorize(Policy = "ManagementWrite")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateSupplierCommand cmd, CancellationToken ct)
+    {
+        await _mediator.Send(cmd with { CompanyId = CompanyId, Id = id }, ct);
+        return NoContent();
     }
 }

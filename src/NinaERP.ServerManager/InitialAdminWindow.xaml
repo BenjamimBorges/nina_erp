@@ -1,0 +1,36 @@
+<Window x:Class="NinaERP.ServerManager.InitialAdminWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Nina ERP • Administrador inicial" Width="620" Height="670"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="#F8FAFC">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28">
+            <TextBlock Text="Empresa e administrador inicial" FontSize="25" FontWeight="Bold" Foreground="#0F172A"/>
+            <TextBlock Text="Esses dados são gravados somente quando o banco ainda não possui usuários." Foreground="#64748B" Margin="0,5,0,22" TextWrapping="Wrap"/>
+
+            <TextBlock Text="CNPJ" FontWeight="SemiBold"/><TextBox x:Name="CnpjBox" Height="36" Margin="0,6,0,12" Padding="9,6"/>
+            <TextBlock Text="Razão social" FontWeight="SemiBold"/><TextBox x:Name="CompanyNameBox" Height="36" Margin="0,6,0,12" Padding="9,6"/>
+            <TextBlock Text="Nome fantasia" FontWeight="SemiBold"/><TextBox x:Name="FantasyNameBox" Height="36" Margin="0,6,0,12" Padding="9,6"/>
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="120"/></Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock Text="Cidade" FontWeight="SemiBold"/><TextBox x:Name="CityBox" Height="36" Margin="0,6,0,0" Padding="9,6"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="UF" FontWeight="SemiBold"/><TextBox x:Name="StateBox" Height="36" Margin="0,6,0,0" Padding="9,6" MaxLength="2"/>
+                </StackPanel>
+            </Grid>
+            <Separator Margin="0,4,0,16"/>
+            <TextBlock Text="Usuário administrador" FontWeight="SemiBold"/><TextBox x:Name="UsernameBox" Text="admin" Height="36" Margin="0,6,0,12" Padding="9,6"/>
+            <TextBlock Text="Nome completo" FontWeight="SemiBold"/><TextBox x:Name="FullNameBox" Text="Administrador" Height="36" Margin="0,6,0,12" Padding="9,6"/>
+            <TextBlock Text="E-mail" FontWeight="SemiBold"/><TextBox x:Name="EmailBox" Height="36" Margin="0,6,0,12" Padding="9,6"/>
+            <TextBlock Text="Senha" FontWeight="SemiBold"/><PasswordBox x:Name="PasswordBox" Height="36" Margin="0,6,0,6" Padding="9,6"/>
+            <TextBlock Text="Use no mínimo 10 caracteres, com maiúscula, minúscula, número e símbolo." Foreground="#64748B" FontSize="12" TextWrapping="Wrap"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,22,0,0">
+                <Button Content="Cancelar" Width="100" Height="38" Margin="0,0,8,0" Click="Cancel_Click"/>
+                <Button Content="Criar administrador" Width="150" Height="38" Click="Create_Click"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

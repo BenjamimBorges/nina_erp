@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using NinaERP.Application.Common.Exceptions;
 using NinaERP.Contracts.Responses;
 
@@ -26,6 +27,7 @@ public class ExceptionHandlerMiddleware
                 NotFoundException => (HttpStatusCode.NotFound, ex.Message, Enumerable.Empty<string>()),
                 BusinessException => (HttpStatusCode.UnprocessableEntity, ex.Message, Enumerable.Empty<string>()),
                 UnauthorizedAccessException => (HttpStatusCode.Unauthorized, ex.Message, Enumerable.Empty<string>()),
+                DbUpdateConcurrencyException => (HttpStatusCode.Conflict, "Os dados foram alterados por outra operação. Atualize a tela e tente novamente.", Enumerable.Empty<string>()),
                 _ => (HttpStatusCode.InternalServerError, "Erro interno.", Enumerable.Empty<string>())
             };
             ctx.Response.StatusCode = (int)status;

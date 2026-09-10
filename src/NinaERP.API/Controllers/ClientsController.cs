@@ -25,6 +25,7 @@ public class ClientsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "CommercialWrite")]
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateClientCommand cmd, CancellationToken ct)
     {
         var id = await _mediator.Send(cmd with { CompanyId = CompanyId }, ct);
@@ -32,9 +33,10 @@ public class ClientsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Policy = "CommercialWrite")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateClientCommand cmd, CancellationToken ct)
     {
-        await _mediator.Send(cmd with { Id = id }, ct);
+        await _mediator.Send(cmd with { CompanyId = CompanyId, Id = id }, ct);
         return NoContent();
     }
 }

@@ -1,0 +1,4 @@
+import api from './api'; import type {ApiResponse} from '../types'
+export interface Warehouse{id:string;code:string;name:string;branchCode?:string;isDefault:boolean}
+export interface InventoryBalance{productId:string;sku:string;productName:string;warehouseId:string;warehouseName:string;onHand:number;reserved:number;available:number;averageCost:number;minimum:number}
+export const inventoryService={warehouses:()=>api.get<ApiResponse<Warehouse[]>>('/inventory/warehouses').then(r=>r.data),balances:(warehouseId?:string,search?:string)=>api.get<ApiResponse<InventoryBalance[]>>('/inventory/balances',{params:{warehouseId,search}}).then(r=>r.data),transfer:(v:any)=>api.post('/inventory/transfer',{...v,idempotencyKey:crypto.randomUUID()}),adjust:(v:any)=>api.post('/inventory/adjust',{...v,idempotencyKey:crypto.randomUUID()})}

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using NinaERP.Application.Common.Interfaces;
 using NinaERP.Contracts.Responses;
 
@@ -15,11 +16,12 @@ public class AuthController : ControllerBase
     public AuthController(IUnitOfWork uow, IJwtTokenGenerator jwt) { _uow = uow; _jwt = jwt; }
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public async Task<ActionResult<ApiResponse<AuthResponse>>> Login(
         [FromBody] LoginRequest request, CancellationToken ct)
     {
         var user = await _uow.Users.GetByUsernameAsync(request.Username, ct);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        if (user == null || !user.IsActive || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             return Unauthorized(ApiResponse<AuthResponse>.Fail("Usuário ou senha inválidos."));
 
         var token = _jwt.GenerateToken(user);
@@ -33,7 +35,7 @@ public class AuthController : ControllerBase
     {
         var claims = new {
             Id = User.FindFirstValue(ClaimTypes.NameIdentifier),
-            Username = User.FindFirstValue(ClaimTypes.Name),
+            Username = User.FindFirstValue("username") ?? User.FindFirstValue(ClaimTypes.Name),
             Role = User.FindFirstValue(ClaimTypes.Role),
             CompanyId = User.FindFirstValue("companyId")
         };

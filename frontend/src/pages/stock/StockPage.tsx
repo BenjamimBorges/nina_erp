@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ArrowUpRight,
   Database,
+  PackageSearch,
 } from "lucide-react";
 
 export default function StockPage() {
@@ -31,17 +32,30 @@ export default function StockPage() {
     queryFn: productsService.getLowStock,
   });
 
+  const { data: productsData } = useQuery({
+    queryKey: ["products", "stock-selector"],
+    queryFn: () => productsService.getAll(),
+  });
+
+  const { data: movementsData } = useQuery({
+    queryKey: ["stock", "movements", form.productId],
+    queryFn: () => stockService.getMovements(form.productId || undefined),
+  });
+
   const adjustMutation = useMutation({
     mutationFn: stockService.adjust,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["products"] });
       qc.invalidateQueries({ queryKey: ["products", "low-stock"] });
       qc.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      qc.invalidateQueries({ queryKey: ["stock", "movements"] });
       alert("Ajuste registrado!");
     },
   });
 
   const lowStock = lowStockData?.data ?? [];
+  const products = productsData?.data ?? [];
+  const movements = movementsData?.data ?? [];
   const summary = summaryData?.data;
 
   return (
@@ -116,16 +130,20 @@ export default function StockPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                ID do produto
+                Produto
               </label>
-              <input
+              <select
                 value={form.productId}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, productId: e.target.value }))
-                }
-                placeholder="UUID do produto"
+                onChange={(e) => setForm((f) => ({ ...f, productId: e.target.value }))}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-              />
+              >
+                <option value="">Selecione um produto</option>
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.sku} • {product.name} • saldo {product.stockQty} {product.unit}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -152,8 +170,8 @@ export default function StockPage() {
               </label>
               <input
                 type="number"
-                min="0.001"
-                step="0.001"
+                min={form.type === "Adjustment" ? undefined : "0.0001"}
+                step="0.0001"
                 value={form.qty}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, qty: Number(e.target.value) }))
@@ -194,7 +212,7 @@ export default function StockPage() {
 
           <button
             onClick={() => adjustMutation.mutate(form)}
-            disabled={adjustMutation.isPending}
+            disabled={adjustMutation.isPending || !form.productId || form.qty === 0}
             className="mt-6 inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-700 disabled:opacity-50"
           >
             {adjustMutation.isPending ? "Salvando..." : "Registrar movimento"}
@@ -248,6 +266,46 @@ export default function StockPage() {
           )}
         </section>
       </div>
+
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Histórico de movimentações</h3>
+            <p className="text-sm text-slate-500">Últimos 30 dias, com filtro pelo produto selecionado.</p>
+          </div>
+          <PackageSearch size={20} className="text-slate-400" />
+        </div>
+        {movements.length === 0 ? (
+          <div className="py-8 text-center text-sm text-slate-400">Nenhuma movimentação encontrada.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
+                  <th className="pb-3 font-medium">Data</th>
+                  <th className="pb-3 font-medium">Produto</th>
+                  <th className="pb-3 font-medium">Tipo</th>
+                  <th className="pb-3 font-medium text-right">Quantidade</th>
+                  <th className="pb-3 font-medium text-right">Custo</th>
+                  <th className="pb-3 font-medium">Observação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {movements.slice(0, 30).map((movement) => (
+                  <tr key={movement.id} className="border-b border-slate-50 text-slate-700">
+                    <td className="py-3">{new Date(movement.movedAt).toLocaleString("pt-BR")}</td>
+                    <td className="py-3 font-medium text-slate-900">{movement.productName}</td>
+                    <td className="py-3">{movement.type}</td>
+                    <td className="py-3 text-right tabular-nums">{movement.qty}</td>
+                    <td className="py-3 text-right tabular-nums">R$ {movement.costUnit.toFixed(2)}</td>
+                    <td className="py-3 text-slate-500">{movement.notes || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

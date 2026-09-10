@@ -4,34 +4,47 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     ports:
-      - "7000:8080"
+      - "${NINAERP_HTTP_PORT:-7000}:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=nina_erp_retail;Username=erpuser;Password=erp_password
-      - Jwt__Key=TROQUE-ESTA-CHAVE-EM-PRODUCAO-MIN-32-CHARS-OBRIGATORIO!!
-      - Jwt__Issuer=NinaERPRetail
-      - Jwt__Audience=NinaERPRetailUsers
+      ASPNETCORE_ENVIRONMENT: Production
+      Kestrel__Endpoints__Http__Url: http://0.0.0.0:8080
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${NINAERP_DB_NAME:-nina_erp_retail};Username=${NINAERP_DB_USER:-erpuser};Password=${NINAERP_DB_PASSWORD:?Defina NINAERP_DB_PASSWORD}"
+      Jwt__Key: "${NINAERP_JWT_KEY:?Defina NINAERP_JWT_KEY com pelo menos 32 caracteres}"
+      Jwt__Issuer: "${NINAERP_JWT_ISSUER:-NinaERP}"
+      Jwt__Audience: "${NINAERP_JWT_AUDIENCE:-NinaERPUsers}"
+      Database__ApplyMigrationsOnStartup: "false"
+      Seed__DemoData: "false"
+      Storage__FiscalRoot: /var/lib/ninaerp/fiscal
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - nina_logs:/app/logs
+      - nina_fiscal:/var/lib/ninaerp/fiscal
 
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: nina_erp_retail
-      POSTGRES_USER: erpuser
-      POSTGRES_PASSWORD: erp_password
-    ports:
-      - "5433:5432"
+      POSTGRES_DB: "${NINAERP_DB_NAME:-nina_erp_retail}"
+      POSTGRES_USER: "${NINAERP_DB_USER:-erpuser}"
+      POSTGRES_PASSWORD: "${NINAERP_DB_PASSWORD:?Defina NINAERP_DB_PASSWORD}"
+    expose:
+      - "5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U erpuser -d nina_erp_retail"]
+      test: ["CMD-SHELL", "pg_isready -U ${NINAERP_DB_USER:-erpuser} -d ${NINAERP_DB_NAME:-nina_erp_retail}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
     restart: unless-stopped
 
 volumes:
   pgdata:
+  nina_logs:
+  nina_fiscal:

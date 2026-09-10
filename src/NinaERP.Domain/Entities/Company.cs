@@ -14,11 +14,14 @@ public class Company : BaseEntity
     public string ZipCode { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public string TimeZoneId { get; set; } = "America/Sao_Paulo";
     public FiscalRegime FiscalRegime { get; set; }
+    [Obsolete("Use FiscalConfiguration.CertificateThumbprint. PFX passwords must not be persisted in the database.")]
     public string? CertPfxPath { get; set; }
+    [Obsolete("Password hashes cannot be used to open fiscal certificates. Use Windows Certificate Store + thumbprint.")]
     public string? CertPasswordHash { get; set; }
     public int NfeSeries { get; set; } = 1;
-    public int NfceSerires { get; set; } = 1;
-    public int NfeNumber { get; set; } = 0;
-    public int NfceNumber { get; set; } = 0;
+    public int NfceSeries { get; set; } = 1;
+    public int NfeNumber { get; set; }
+    public int NfceNumber { get; set; }
 }

@@ -8,5 +8,7 @@ public interface IUnitOfWork
     IDepartmentRepository Departments { get; }
     IStockMovementRepository StockMovements { get; }
     IUserRepository Users { get; }
+    IAuditLogRepository AuditLogs { get; }
+    ISaleRepository Sales { get; }
     Task<int> CommitAsync(CancellationToken ct = default);
 }

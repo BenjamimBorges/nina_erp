@@ -1,0 +1,22 @@
+<Window x:Class="NinaERP.Desktop.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Servidor do Nina ERP" Height="220" Width="520"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Endereço do servidor" FontSize="20" FontWeight="SemiBold"/>
+        <TextBlock Grid.Row="1" Margin="0,8,0,14" Foreground="#64748B"
+                   Text="Use localhost no servidor ou o IP/nome da máquina na rede, por exemplo http://192.168.1.10:7000." TextWrapping="Wrap"/>
+        <TextBox x:Name="ServerUrlBox" Grid.Row="2" Height="38" Padding="10,7" VerticalAlignment="Top"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+            <Button Content="Cancelar" Width="90" Height="34" Margin="0,0,8,0" IsCancel="True"/>
+            <Button Content="Salvar" Width="90" Height="34" IsDefault="True" Click="Save_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

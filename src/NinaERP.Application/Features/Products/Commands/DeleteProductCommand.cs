@@ -1,11 +1,11 @@
-using NinaERP.Domain.Entities;
 using MediatR;
 using NinaERP.Application.Common.Exceptions;
 using NinaERP.Application.Common.Interfaces;
+using NinaERP.Domain.Entities;
 
 namespace NinaERP.Application.Features.Products.Commands;
 
-public record DeleteProductCommand(Guid Id) : IRequest;
+public record DeleteProductCommand(Guid CompanyId, Guid Id) : IRequest;
 
 public class DeleteProductHandler : IRequestHandler<DeleteProductCommand>
 {
@@ -16,6 +16,10 @@ public class DeleteProductHandler : IRequestHandler<DeleteProductCommand>
     {
         var product = await _uow.Products.GetByIdAsync(cmd.Id, ct)
             ?? throw new NotFoundException(nameof(Product), cmd.Id);
+
+        if (product.CompanyId != cmd.CompanyId)
+            throw new NotFoundException(nameof(Product), cmd.Id);
+
         product.IsActive = false;
         product.UpdatedAt = DateTime.UtcNow;
         _uow.Products.Update(product);

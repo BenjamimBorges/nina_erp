@@ -37,3 +37,18 @@ export interface ApiResponse<T> {
 export interface AuthResponse {
   token: string; username: string; fullName: string; role: string; companyId: string;
 }
+
+export interface SaleItem {
+  productId: string; productName: string; qty: number; unitPrice: number;
+  discount: number; total: number;
+}
+
+export interface SalePayment {
+  method: string; amount: number; status: string; provider: string; capturedAt?: string | null;
+}
+
+export interface Sale {
+  id: string; clientId?: string | null; clientName?: string | null; userId: string;
+  totalProducts: number; totalDiscount: number; totalPaid: number; status: string;
+  saleDate: string; items: SaleItem[]; payments: SalePayment[];
+}

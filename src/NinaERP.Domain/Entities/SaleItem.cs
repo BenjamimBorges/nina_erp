@@ -6,6 +6,7 @@ public class SaleItem : BaseEntity
     public Guid ProductId { get; set; }
     public decimal Qty { get; set; }
     public decimal UnitPrice { get; set; }
+    public decimal CostUnit { get; set; }
     public decimal Discount { get; set; }
     public decimal Total => (Qty * UnitPrice) - Discount;
     public string Cfop { get; set; } = string.Empty;

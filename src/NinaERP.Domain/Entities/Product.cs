@@ -14,8 +14,9 @@ public class Product : BaseEntity
     public decimal PriceSale { get; set; }
     public decimal PriceMinimum { get; set; }
     public decimal CostAverage { get; set; }
-    public int StockQty { get; set; }
-    public int StockMin { get; set; }
+    public decimal StockQty { get; set; }
+    public decimal StockMin { get; set; }
+    public long Version { get; set; }
     public string Brand { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;
     public string Barcode { get; set; } = string.Empty;
