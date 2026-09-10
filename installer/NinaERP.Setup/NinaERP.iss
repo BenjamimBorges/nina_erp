@@ -1,12 +1,14 @@
 #define MyAppName "Nina ERP"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.2.0"
+#define MyAppLabel "0.2.0-hml"
 #define MyAppPublisher "Nina ERP"
 #define Artifacts "..\..\artifacts\windows"
 
 [Setup]
 AppId={{C871792D-C188-4B35-9FE1-2D938AA3D492}
 AppName={#MyAppName}
-AppVersion={#MyAppVersion}
+AppVersion={#MyAppLabel}
+VersionInfoVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\NinaERP
 DefaultGroupName=Nina ERP
@@ -14,7 +16,7 @@ PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=output
-OutputBaseFilename=NinaERP-Setup-{#MyAppVersion}-win-x64
+OutputBaseFilename=NinaERP-Setup-{#MyAppLabel}-win-x64
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern

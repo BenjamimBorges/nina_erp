@@ -1,4 +1,4 @@
-
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store/auth'
 
@@ -17,19 +17,30 @@ import FinancePage from './pages/operations/FinancePage'
 import FiscalPage from './pages/operations/FiscalPage'
 import ReportsPage from './pages/operations/ReportsPage'
 import SettingsPage from './pages/operations/SettingsPage'
-
+import UsersPage from './pages/admin/UsersPage'
+import QualityPage from './pages/operations/QualityPage'
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, initialized } = useAuthStore()
 
-  return isAuthenticated ? (
-    <>{children}</>
-  ) : (
-    <Navigate to="/login" replace />
-  )
+  if (!initialized) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-slate-50 text-slate-600">
+        Validando sessão segura...
+      </div>
+    )
+  }
+
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
 }
 
 export default function App() {
+  const bootstrap = useAuthStore(state => state.bootstrap)
+
+  useEffect(() => {
+    void bootstrap()
+  }, [bootstrap])
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -43,7 +54,6 @@ export default function App() {
         }
       >
         <Route index element={<Navigate to="/dashboard" />} />
-
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="cadastro-produto" element={<CadastroProdutoPage />} />
         <Route path="clients" element={<ClientsPage />} />
@@ -56,6 +66,8 @@ export default function App() {
         <Route path="fiscal" element={<FiscalPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="quality" element={<QualityPage />} />
       </Route>
     </Routes>
   )

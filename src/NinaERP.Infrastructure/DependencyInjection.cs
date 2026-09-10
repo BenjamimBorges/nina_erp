@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.Configure<JwtSettings>(config.GetSection("Jwt"));
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IUserAdministrationService, UserAdministrationService>();
         services.AddScoped<ICashManagementService, CashManagementService>();
         services.AddScoped<IInventoryService, InventoryService>();
         services.AddScoped<IPaymentService, PaymentService>();

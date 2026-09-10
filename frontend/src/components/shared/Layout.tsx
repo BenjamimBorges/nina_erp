@@ -1,13 +1,21 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/auth'
-import { Home, Package, Users, Truck, LogOut, ShoppingCart, WalletCards, Landmark, ReceiptText, FileBarChart, Boxes, Settings } from 'lucide-react'
-const nav=[
+import { Home, Package, Users, Truck, LogOut, ShoppingCart, WalletCards, Landmark, ReceiptText, FileBarChart, Boxes, Settings, ShieldCheck, Activity, type LucideIcon } from 'lucide-react'
+
+type NavItem = { to: string; icon: LucideIcon; label: string; roles?: string[] }
+
+const nav: NavItem[]=[
  {to:'/dashboard',icon:Home,label:'Dashboard'}, {to:'/pos',icon:ShoppingCart,label:'PDV / Vendas'}, {to:'/stock',icon:Boxes,label:'Estoque'},
  {to:'/cash',icon:WalletCards,label:'Caixa e pagamentos'}, {to:'/purchases',icon:Truck,label:'Compras'}, {to:'/finance',icon:Landmark,label:'Financeiro'},
  {to:'/fiscal',icon:ReceiptText,label:'Central Fiscal'}, {to:'/reports',icon:FileBarChart,label:'Relatórios'},
- {to:'/cadastro-produto',icon:Package,label:'Produtos'}, {to:'/clients',icon:Users,label:'Clientes'}, {to:'/suppliers',icon:Truck,label:'Fornecedores'}, {to:'/settings',icon:Settings,label:'Configurações'}]
-export default function Layout(){const{user,logout}=useAuthStore();const navigate=useNavigate();return <div className="flex h-screen bg-slate-50 text-slate-900">
+ {to:'/cadastro-produto',icon:Package,label:'Produtos'}, {to:'/clients',icon:Users,label:'Clientes'}, {to:'/suppliers',icon:Truck,label:'Fornecedores'},
+ {to:'/users',icon:ShieldCheck,label:'Usuários',roles:['Admin']}, {to:'/quality',icon:Activity,label:'Qualidade',roles:['Admin']}, {to:'/settings',icon:Settings,label:'Configurações'}]
+
+export default function Layout(){
+ const{user,logout}=useAuthStore();const navigate=useNavigate();
+ const visibleNav=nav.filter(item=>!item.roles || (user?.role && item.roles.includes(user.role)))
+ return <div className="flex h-screen bg-slate-50 text-slate-900">
 <aside className="w-64 border-r border-slate-200 bg-white flex flex-col"><div className="px-5 py-5 border-b border-slate-100"><div className="flex items-center gap-3"><div className="h-9 w-9 rounded-xl bg-indigo-600 text-white grid place-items-center font-bold">N</div><div><h1 className="font-semibold text-lg">Nina ERP</h1><p className="text-xs text-slate-500">Gestão que impulsiona</p></div></div></div>
-<nav className="flex-1 overflow-auto p-3 space-y-1">{nav.map(({to,icon:Icon,label})=><NavLink key={to} to={to} className={({isActive})=>`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm ${isActive?'bg-indigo-50 text-indigo-700 font-medium':'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}><Icon size={17}/>{label}</NavLink>)}</nav>
-<div className="border-t border-slate-100 p-4"><div className="mb-3 px-2"><p className="text-sm font-medium">{user?.fullName}</p><p className="text-xs text-slate-500">{user?.role}</p></div><button onClick={()=>{logout();navigate('/login')}} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-500 hover:bg-rose-50 hover:text-rose-700"><LogOut size={16}/>Sair</button></div></aside>
+<nav className="flex-1 overflow-auto p-3 space-y-1">{visibleNav.map(({to,icon:Icon,label})=><NavLink key={to} to={to} className={({isActive})=>`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm ${isActive?'bg-indigo-50 text-indigo-700 font-medium':'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}><Icon size={17}/>{label}</NavLink>)}</nav>
+<div className="border-t border-slate-100 p-4"><div className="mb-3 px-2"><p className="text-sm font-medium">{user?.fullName}</p><p className="text-xs text-slate-500">{user?.role}</p></div><button onClick={()=>{void logout().finally(()=>navigate('/login'))}} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-500 hover:bg-rose-50 hover:text-rose-700"><LogOut size={16}/>Sair</button></div></aside>
 <main className="flex-1 min-w-0 overflow-auto"><div className="sticky top-0 z-20 h-16 border-b border-slate-200 bg-white/95 backdrop-blur flex items-center justify-between px-6"><div><p className="text-xs uppercase tracking-[.18em] text-slate-400">Ambiente operacional</p><p className="text-sm font-medium">Nina ERP · núcleo comercial e fiscal</p></div><div className="flex items-center gap-2 text-xs"><span className="rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700">API</span><span className="rounded-full bg-indigo-50 px-3 py-1.5 text-indigo-700">Multiempresa</span></div></div><Outlet/></main></div>}

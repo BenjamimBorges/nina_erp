@@ -1,151 +1,140 @@
 # Nina ERP
 
-ERP desktop/rede para Windows com interface React, API ASP.NET Core e PostgreSQL.
+ERP desktop/rede para Windows com **React + ASP.NET Core/.NET 10 + PostgreSQL**, empacotado com WPF/WebView2.
 
-> Estado desta revisão: base técnica para a **primeira build Windows** e fundação dos módulos de estoque/vendas/PDV.
+> Estado desta revisão: **release candidate de homologação `0.2.0-hml` das etapas 00–20**. `productionApproved=false` até os gates .NET/PostgreSQL/Windows, restore e homologação fiscal/contábil passarem com evidência.
 
 ## Arquitetura
 
 ```text
 NinaERP.Desktop (WPF + WebView2)
             │
-            │ HTTP / LAN
             ▼
-NinaERP.API (ASP.NET Core + React build estático)
+NinaERP.API (.NET 10 + React estático)
             │
             ▼
-Application (MediatR + FluentValidation)
+Application / Domain / Infrastructure
             │
             ▼
-Infrastructure (EF Core + Npgsql)
-            │
-            ▼
-PostgreSQL 16+
+PostgreSQL 17
 ```
 
-O React é a interface única. A API entrega os arquivos estáticos do frontend e também expõe `/api/*`. O aplicativo WPF apenas hospeda essa interface em WebView2 e pode apontar para `127.0.0.1` ou para o IP do servidor na rede.
+A API é o ponto central da aplicação. `CompanyId` é derivado da sessão autenticada; módulos transacionais mantêm idempotência, concorrência, auditoria e isolamento multiempresa.
 
-## Projetos
+## Estado funcional
 
-- `NinaERP.Domain` — entidades, enums e regras de domínio.
-- `NinaERP.Contracts` — requests/responses compartilhados.
-- `NinaERP.Application` — casos de uso CQRS, validações e interfaces.
-- `NinaERP.Infrastructure` — EF Core, PostgreSQL, repositórios, JWT.
-- `NinaERP.API` — REST API, autenticação, políticas, auditoria, health check e host do React.
-- `NinaERP.Desktop` — shell WPF + WebView2.
-- `NinaERP.ServerManager` — configuração do PostgreSQL/API, migrations, serviço Windows, backup/restore e bootstrap inicial.
-- `NinaERP.Tests` — testes unitários de estoque, segurança multiempresa e vendas.
-- `frontend` — React 18 + TypeScript + Vite + Tailwind + TanStack Query.
-- `installer/NinaERP.Setup` — instalador Inno Setup.
-- `scripts/windows` — build, dependências, migrations, firewall, rede, smoke test, backup e restore.
+O candidato inclui: usuários/RBAC, produtos/clientes/fornecedores, depósitos e estoque profissional, venda/PDV, caixa, pagamentos e outbox, compras, contas a pagar/receber, motor tributário configurável, camada fiscal desacoplada, central fiscal/guias, views de relatórios, observabilidade, backup/restore, build/instalador Windows e pipeline CI.
 
-## Primeira build no Windows
+Integrações externas **não são simuladas como confirmadas**: PIX/cartão sem adapter permanecem pendentes/conciliação; NF-e/NFC-e não é autorizada sem chave/protocolo real.
 
-### 1. Máquina de desenvolvimento
+## Autenticação e segurança
 
-Abra PowerShell como Administrador:
+- Login por **CNPJ + usuário + senha**.
+- Sessão JWT em cookie `HttpOnly`, `SameSite=Strict`; HTTPS força `Secure`.
+- O token não é exposto em JSON nem Web Storage.
+- Anti-CSRF por header customizado + CORS; login também é protegido contra login-CSRF.
+- Sessões antigas são revogadas após mudança de senha, perfil ou status (`userVersion`).
+- Policies `Admin`, `Manager`, `Stock` e `Cashier`.
+- Testes de IDOR/multiempresa, mass assignment, SQL injection probe, rate limiting e headers/CSP.
+- Segredos-placeholder e seed de homologação são bloqueados em produção.
+
+## Massa de homologação
+
+Com `NINAERP_HOMOLOGATION_PASSWORD` definido, `--seed-homologation` cria de forma idempotente:
+
+- 3 perfis administrativos: `admin_hml`, `gerente_hml`, `estoque_hml`;
+- 3 vendedores: `vendedor01`, `vendedor02`, `vendedor03`;
+- 20 produtos com EAN-13 únicos/válidos, custo e preço de venda distintos;
+- 4 clientes em CE, SP, PE e MA;
+- compra `HML-PO-001`, com 100 unidades de cada produto, recebimento e conta a pagar;
+- 4 vendas em dinheiro concluídas e 1 PIX deliberadamente pendente.
+
+Detalhes: `docs/HOMOLOGATION_DATASET.md`.
+
+## SDK .NET 10 — online ou offline
+
+O `global.json` fixa **10.0.401**, feature band `10.0.4xx`.
+
+Windows:
+
+```powershell
+.\scripts\windows\Install-DotNetSdk.ps1 -PersistMachinePath
+```
+
+Rede restrita:
+
+```powershell
+.\scripts\windows\Install-DotNetSdk.ps1 `
+  -OfflineArchive C:\Temp\dotnet-sdk-10.0.401-win-x64.zip `
+  -OfflineArchiveSha512 '<SHA512_OFICIAL>' `
+  -PersistMachinePath
+```
+
+Linux:
+
+```bash
+./scripts/dev/ensure-dotnet.sh
+```
+
+Veja `docs/DOTNET_BOOTSTRAP.md`.
+
+## Build Windows
+
+Em PowerShell como Administrador:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
 .\scripts\windows\Install-Prerequisites.ps1 -DeveloperMachine -InstallPostgreSql
-```
-
-### 2. Gerar artefatos
-
-```powershell
 .\scripts\windows\Build-FirstWindows.ps1 -Runtime win-x64 -BuildInstaller
 ```
 
-Saída:
+O build exige migrations versionadas já presentes, executa frontend, restore/build/test, gera `efbundle.exe`, publica API/Desktop/ServerManager self-contained e compila o instalador quando o Inno Setup estiver disponível. O script **não inventa migration durante a build**.
+
+## CI / gate de engenharia
+
+`.github/workflows/ci.yml` executa:
 
 ```text
-artifacts/windows/server
-artifacts/windows/desktop
-artifacts/windows/manager
-installer/NinaERP.Setup/output
+Static contracts/security/data
+→ .NET restore/build
+→ unit tests
+→ EF pending-model gate
+→ migration idempotente
+→ PostgreSQL 17 integration tests
+→ banco vazio + upgrade legado
+→ seed de homologação
+→ functional E2E + carga + segurança
+→ React production build + npm audit
+→ Windows x64 publish + Inno Setup + assinatura CI + pacote
 ```
 
-O script:
+Esse CI é o executor autoritativo quando a máquina local não dispõe do SDK/PostgreSQL.
 
-1. executa `npm ci`;
-2. compila React em produção;
-3. copia `frontend/dist` para `NinaERP.API/wwwroot`;
-4. restaura a solution .NET;
-5. cria a migration inicial se ainda não existir;
-6. compila e executa testes;
-7. gera `efbundle.exe` self-contained;
-8. publica API/Desktop/ServerManager self-contained para Windows;
-9. opcionalmente compila o instalador Inno Setup.
+## Piloto
 
-### 3. Instalação limpa na VM
+O piloto deve começar com uma empresa, uma filial e um PDV e seguir:
 
-1. Execute o `NinaERP-Setup-*.exe` como administrador.
-2. Abra **Nina ERP Server Manager**.
-3. Informe host/porta/banco/usuário/senha do PostgreSQL.
-4. Clique em **Inicializar servidor**.
-5. Quando solicitado, cadastre a empresa e o primeiro administrador.
-6. Libere a porta da API no firewall usando `Configure-Firewall.ps1`.
-7. Execute `Smoke-Test.ps1` no servidor.
-8. Execute `Test-Network.ps1` em outro computador da rede.
-9. No NinaERP Desktop cliente, configure `http://IP_DO_SERVIDOR:7000`.
-
-Consulte `docs/WINDOWS_FIRST_BUILD.md` para o roteiro completo.
-
-## Segurança implementada nesta revisão
-
-- `CompanyId` sempre extraído do JWT nos endpoints sensíveis.
-- correção de acesso cruzado entre empresas em produtos, clientes, fornecedores, departamentos e estoque.
-- JWT com segredo mínimo de 32 caracteres e bloqueio do segredo de exemplo em produção.
-- perfis `Admin`, `Manager`, `Cashier` e `Stock` com policies da API.
-- rate limit no login.
-- usuário inativo não consegue autenticar.
-- auditoria de `POST`, `PUT`, `PATCH` e `DELETE`.
-- configuração de produção em `%ProgramData%\NinaERP`, com ACL restritiva aplicada pelo Server Manager.
-- concorrência otimista de estoque por `Product.Version`.
-
-## Estoque e vendas
-
-Esta revisão adiciona/fortalece:
-
-- estoque fracionado com `decimal(18,4)`;
-- entrada, saída, perda e ajuste;
-- bloqueio de saldo negativo;
-- custo médio ponderado nas entradas;
-- histórico de movimentações;
-- venda aberta;
-- fechamento com uma ou mais formas de pagamento;
-- baixa automática de estoque no fechamento;
-- cancelamento com recomposição de estoque;
-- motivo/data de cancelamento;
-- PDV React funcional sobre esse fluxo.
-
-Ainda não são considerados completos: transferência entre depósitos, inventário físico, reservas, sessão de caixa, devolução parcial, reversão TEF/adquirente, compras, financeiro e fiscal.
-
-## Migrations
-
-O projeto não usa mais `EnsureCreated` como mecanismo de produção. A primeira migration é criada pelo script de build quando o diretório ainda está vazio; depois disso, **as migrations geradas devem ser commitadas no Git** e nunca recriadas automaticamente em uma base comercial já existente.
-
-Produção recebe um `efbundle.exe`, executado pelo Server Manager antes de iniciar o serviço.
-
-## Backup e restore
-
-O Server Manager e os scripts usam `pg_dump` no formato custom e `pg_restore` para restauração.
-
-```powershell
-.\scripts\windows\Backup-Database.ps1
-.\scripts\windows\Restore-Database.ps1 -File .\backups\ninaerp-20260905.backup
+```text
+compra → recebimento → estoque → caixa → venda → pagamento
+→ fiscal → financeiro → relatórios → backup/restore
 ```
 
-Teste restaurações periodicamente. Backup sem teste de restore não deve ser tratado como estratégia de recuperação validada.
+Execute o preflight:
 
-## .NET 8 → .NET 10
+```bash
+NINAERP_BASE_URL=http://127.0.0.1:7000 \
+NINAERP_HOMOLOGATION_PASSWORD='<senha forte>' \
+./scripts/pilot/verify-pilot.sh
+```
 
-A primeira build permanece em .NET 8 para reduzir mudanças simultâneas. Porém, a migração para .NET 10 deve acontecer **imediatamente depois que a build Windows 01–10 estiver reproduzível**, antes de acelerar os módulos comerciais. Veja `docs/ROADMAP_IMPLEMENTATION.md`.
+A autorização fiscal real e integrações de pagamento continuam dependentes de provedores homologados.
 
-## Documentação
+## Documentação principal
 
-- `docs/ROADMAP_IMPLEMENTATION.md` — status dos 30 itens e ordem recomendada.
-- `docs/ARCHITECTURE.md` — decisões arquiteturais e por quê.
-- `docs/TECHNOLOGIES.md` — tecnologias e finalidade de cada uma.
-- `docs/WINDOWS_FIRST_BUILD.md` — instalação/teste na VM e rede.
-- `docs/VALIDATION_REPORT.md` — o que foi e não foi validado neste ambiente.
+- `docs/IMPLEMENTATION_STAGES_13_20.md` — status das etapas 13–20.
+- `docs/VALIDATION_REPORT.md` — evidências e limitações desta revisão.
+- `docs/HOMOLOGATION_DATASET.md` — usuários/produtos/clientes/cenários.
+- `docs/SECURITY_TEST_PLAN.md` — controles e testes de segurança.
+- `docs/DOTNET_BOOTSTRAP.md` — solução de SDK online/offline/CI.
+- `docs/PILOT_RUNBOOK.md` — execução do piloto.
+- `docs/OPERATIONS_RECOVERY.md` — backup, restore, RPO/RTO e recuperação.

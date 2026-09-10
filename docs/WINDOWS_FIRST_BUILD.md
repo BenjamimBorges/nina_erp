@@ -39,7 +39,7 @@ Copie apenas o setup para a VM limpa e execute como Administrador.
 
 ### PostgreSQL
 
-O Nina ERP aceita banco local ou remoto. Para a primeira build, PostgreSQL local facilita o teste. Instale PostgreSQL 16+ e guarde a senha do usuário administrativo/ERP.
+O Nina ERP aceita banco local ou remoto. Para a primeira build, PostgreSQL local facilita o teste. Instale PostgreSQL 17 e guarde a senha do usuário administrativo/ERP.
 
 ### Server Manager
 

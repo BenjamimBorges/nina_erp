@@ -1,0 +1,19 @@
+{
+  "pilot": {
+    "company": "DEFINIR_EMPRESA_PILOTO",
+    "branch": "MATRIZ",
+    "pos": "PDV-01",
+    "fiscalEnvironment": "Homologation",
+    "rollbackSystemAvailable": true,
+    "supportContact": "DEFINIR",
+    "goLiveApproved": false
+  },
+  "features": {
+    "omnichannel": false,
+    "mobileApi": false,
+    "approvals": false,
+    "advancedBI": true,
+    "assistant": false,
+    "distributedScale": false
+  }
+}

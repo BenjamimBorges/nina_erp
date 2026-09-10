@@ -1,78 +1,68 @@
-# Relatório de validação desta revisão
+# Nina ERP — Relatório de validação das etapas 13–20
 
-Data da revisão: 2026-09-05/06 (America/Fortaleza).
+Data: **2026-09-10** — release candidate `0.2.0-hml`.
 
-## Executado com sucesso neste ambiente
+## Executado de fato neste ambiente
 
 ### Frontend
 
-`npm run build` foi executado após as alterações de estoque/PDV.
+Após a migração da autenticação para cookie HttpOnly e atualização do painel de Qualidade:
 
-Resultado:
+- `npm run build`: **PASS**.
+- TypeScript: **PASS**.
+- Vite production build: **PASS**.
+- **1.664 módulos transformados**.
+- JS: ~352,07 kB (~104,62 kB gzip).
+- CSS: ~24,21 kB (~4,83 kB gzip).
+- `npm audit --offline --omit=dev --audit-level=high`: **0 vulnerabilidades encontradas no cache local**. Isso não substitui o audit online do CI.
 
-- TypeScript: OK.
-- Vite production build: OK.
-- 1652 módulos transformados.
-- bundle JS final aproximado: 318 KB (97 KB gzip).
-- CSS aproximado: 22.7 KB (4.7 KB gzip).
+### Scripts e dados
 
-Os artefatos `frontend/dist` foram removidos novamente do pacote fonte porque devem ser gerados pelo pipeline.
+- `bash -n` em todos os `.sh`: **PASS**.
+- `python3 -m py_compile` nos scripts Python: **PASS**.
+- JSON do projeto fora de artefatos/dependências: **PASS**.
+- Validador da massa: **PASS** — 3 perfis administrativos, 3 vendedores, 20 produtos, 20 EAN-13 válidos/únicos, 4 clientes em UFs distintas, preços de venda superiores aos custos, compra inicial de 100 unidades e cenário PIX pendente.
+- Auditoria estática de segurança: **32/32 PASS**.
+- Gate estrutural profundo: **115/115 PASS** após a limpeza da árvore fonte.
+- CI corrigido para não habilitar cache `setup-dotnet` sem `packages.lock.json`; nesse cenário o action falharia antes do restore.
+- Os artefatos locais de evidência gerados durante o desenvolvimento são removidos do ZIP fonte final.
 
-### Higiene do repositório
+## Segurança validada estruturalmente
 
-O ZIP original continha `frontend/node_modules`, `frontend/dist` e diretórios `bin/obj` versionados. O `.gitignore` fornecido pelo usuário já expressava a intenção correta de ignorá-los; esta revisão remove esses artefatos da árvore entregue e amplia as exclusões para publish, secrets locais, backups e WebView2 user data.
+- CNPJ obrigatório no login multiempresa.
+- JWT ausente do JSON/Web Storage.
+- Cookie HttpOnly/SameSite e Secure obrigatório em HTTPS.
+- Anti-CSRF para escritas por cookie.
+- Revogação imediata de sessão após alteração administrativa.
+- RBAC e proteção do último Admin.
+- Testes de IDOR em produto/cliente/venda.
+- `CompanyId` do corpo não pode substituir o tenant autenticado.
+- Webhook de pagamento exige adapter/verificação.
+- CSP/headers, rate limiting e segredos de produção.
 
-### Revisão estática
+## Solução para o SDK .NET
 
-Foram revisados os fluxos de:
+O container desta sessão não possui `dotnet`, `psql`, Docker nem acesso de rede capaz de baixar o SDK. Foi implementado um bootstrap reproduzível:
 
-- autenticação/JWT;
-- CompanyId/multiempresa;
-- departamento;
-- produto/estoque;
-- clientes/fornecedores;
-- auditoria;
-- venda/pagamento/cancelamento;
-- Desktop;
-- Server Manager;
-- scripts Windows;
-- instalador.
+- Windows online: SDK existente → WinGet → `dotnet-install.ps1`.
+- Windows offline: ZIP oficial + SHA-512, instalado em `%ProgramData%\NinaERP\dotnet-sdk`.
+- Linux online/offline: `scripts/dev/ensure-dotnet.sh`.
+- Todos os caminhos exigem feature band compatível com `global.json` (`10.0.4xx`, a partir de 10.0.401).
+- CI usa `actions/setup-dotnet` e é o executor autoritativo quando a máquina local não dispõe do SDK.
 
-## Não foi possível executar neste ambiente
+## Implementado, porém não executável neste container
 
-O container desta sessão **não possui o SDK .NET** e a rede do container não permitiu baixar o SDK. Portanto não houve como executar aqui:
+Não foram falsamente marcados como aprovados:
 
-```text
-dotnet restore
-dotnet build
-dotnet test
-dotnet publish
-dotnet ef migrations add
-dotnet ef migrations bundle
-```
+- `dotnet restore/build/test/publish`;
+- testes xUnit adicionados nesta rodada;
+- PostgreSQL 17 real;
+- migrations em banco vazio e banco legado;
+- migration bundle;
+- API smoke real dependente do backend .NET;
+- Inno Setup/Windows Service/WebView2 em Windows;
+- assinatura Authenticode com certificado comercial;
+- restore/PITR real;
+- adquirente/PIX e SEFAZ/provedor fiscal reais.
 
-Essas etapas não são declaradas como “testadas” neste relatório. Elas estão automatizadas em `Build-FirstWindows.ps1` justamente para serem executadas na máquina Windows/VM que é o alvo da primeira build.
-
-## Também depende de ambiente externo
-
-Não foi possível afirmar validação real de:
-
-- instalação Inno Setup em Windows limpo;
-- criação/inicialização real do Windows Service;
-- WebView2 runtime real;
-- PostgreSQL Windows local;
-- firewall Windows;
-- LAN entre duas máquinas;
-- backup/restore contra PostgreSQL real;
-- SEFAZ/fiscal;
-- TEF/adquirentes/PIX externos.
-
-## Próxima execução obrigatória
-
-Na VM Windows, rode:
-
-```powershell
-.\scripts\windows\Build-FirstWindows.ps1 -Runtime win-x64 -BuildInstaller
-```
-
-Não use `-SkipTests` na build candidata à primeira versão.
+Esses gates estão codificados no CI e nos scripts Windows. `productionApproved` permanece **false** até as evidências externas existirem.

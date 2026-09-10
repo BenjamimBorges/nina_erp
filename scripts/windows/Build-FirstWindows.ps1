@@ -3,7 +3,8 @@ param(
     [ValidateSet("win-x64", "win-arm64")]
     [string]$Runtime = "win-x64",
     [switch]$SkipTests,
-    [switch]$BuildInstaller
+    [switch]$BuildInstaller,
+    [switch]$BootstrapDotNet
 )
 $ErrorActionPreference = "Stop"
 $Root = Resolve-Path (Join-Path $PSScriptRoot "..\..")
@@ -17,13 +18,25 @@ function Require-Command([string]$Name) {
 }
 
 Write-Host "=== Nina ERP • Primeira Build Windows ===" -ForegroundColor Cyan
+if ($BootstrapDotNet) {
+    # O bootstrap também corrige uma instalação existente em feature band incompatível.
+    & (Join-Path $PSScriptRoot "Install-DotNetSdk.ps1")
+}
 Require-Command dotnet
 Require-Command node
 Require-Command npm
 
 $dotnetVersion = dotnet --version
 Write-Host "SDK .NET: $dotnetVersion"
-if (-not $dotnetVersion.StartsWith("10.")) { throw "SDK .NET 10 é obrigatório. Versão detectada: $dotnetVersion" }
+$requiredSdk = (Get-Content (Join-Path $Root "global.json") -Raw | ConvertFrom-Json).sdk.version
+$requiredParts = $requiredSdk.Split('.')
+$actualParts = $dotnetVersion.Split('.')
+if ($requiredParts.Length -lt 3 -or $actualParts.Length -lt 3) { throw "Versão de SDK inválida. Requerido: $requiredSdk; detectado: $dotnetVersion" }
+$requiredBand = [int]([math]::Floor(([int]$requiredParts[2]) / 100) * 100)
+$actualBand = [int]([math]::Floor(([int]$actualParts[2]) / 100) * 100)
+if ([int]$actualParts[0] -ne [int]$requiredParts[0] -or [int]$actualParts[1] -ne [int]$requiredParts[1] -or $actualBand -ne $requiredBand) {
+    throw "SDK incompatível com global.json. Requer feature band $($requiredParts[0]).$($requiredParts[1]).${requiredBand}xx; detectado: $dotnetVersion"
+}
 Write-Host "Node: $(node --version)"
 
 Remove-Item $Artifacts -Recurse -Force -ErrorAction SilentlyContinue
@@ -82,6 +95,10 @@ if ($BuildInstaller) {
         throw "Inno Setup não encontrado. Instale o Inno Setup 6 e execute novamente com -BuildInstaller."
     }
     & $iscc.Source "installer\NinaERP.Setup\NinaERP.iss"
+    if ($LASTEXITCODE -ne 0) { throw "Compilação do instalador Inno Setup falhou." }
+    $installerOut = Join-Path $Artifacts "installer"
+    New-Item $installerOut -ItemType Directory -Force | Out-Null
+    Copy-Item "installer\NinaERP.Setup\output\*" $installerOut -Force
 } else {
     Write-Host "Instalador não compilado. Use -BuildInstaller quando o Inno Setup estiver instalado." -ForegroundColor DarkGray
 }

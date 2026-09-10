@@ -1,21 +1,20 @@
 import axios from 'axios'
 
-const api = axios.create({ baseURL: '/api' })
-
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
+const api = axios.create({
+  baseURL: '/api',
+  withCredentials: true,
+  headers: { 'X-Requested-With': 'XMLHttpRequest' }
 })
 
 api.interceptors.response.use(
-  r => r,
-  err => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('token')
-      window.location.href = '/login'
+  response => response,
+  error => {
+    const requestUrl = String(error.config?.url ?? '')
+    const isSessionProbe = requestUrl.includes('/auth/me') || requestUrl.includes('/auth/login')
+    if (error.response?.status === 401 && !isSessionProbe && window.location.pathname !== '/login') {
+      window.location.assign('/login')
     }
-    return Promise.reject(err)
+    return Promise.reject(error)
   }
 )
 

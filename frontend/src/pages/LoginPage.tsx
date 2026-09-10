@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
 
 export default function LoginPage() {
+  const [companyCnpj, setCompanyCnpj] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -18,7 +19,7 @@ export default function LoginPage() {
     setError('')
 
     try {
-      await login(username, password)
+      await login(companyCnpj, username, password)
       navigate('/dashboard')
     } catch {
       setError('Usuário ou senha inválidos.')
@@ -85,6 +86,20 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  CNPJ da empresa
+                </label>
+                <input
+                  value={companyCnpj}
+                  onChange={(e) => setCompanyCnpj(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 px-5 py-4 outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all"
+                  placeholder="00.000.000/0000-00"
+                  autoComplete="organization"
+                  required
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Usuário

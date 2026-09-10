@@ -35,7 +35,7 @@ export interface ApiResponse<T> {
 }
 
 export interface AuthResponse {
-  token: string; username: string; fullName: string; role: string; companyId: string;
+  username: string; fullName: string; role: string; companyId: string;
 }
 
 export interface SaleItem {

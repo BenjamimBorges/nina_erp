@@ -41,34 +41,50 @@ jobs:
       Jwt__Audience: NinaERP.CI
       Database__ApplyMigrationsOnStartup: 'false'
       Seed__DemoData: 'false'
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Homologation
+      NINAERP_HOMOLOGATION_CNPJ: 12.345.678/0001-95
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.401
-          cache: true
-          cache-dependency-path: '**/*.csproj'
-      - name: Static engineering contracts
-        run: python3 scripts/validation/static_contract_checks.py
-      - name: PostgreSQL engineering gate
-        run: scripts/ci/run-postgres-gate.sh
-      - name: API health smoke test
+      - name: Static engineering/security/data contracts
         shell: bash
         run: |
           set -euo pipefail
+          python3 scripts/validation/static_contract_checks.py
+          python3 scripts/security/static-security-audit.py
+          python3 scripts/validation/homologation_seed_checks.py
+      - name: PostgreSQL engineering gate
+        run: scripts/ci/run-postgres-gate.sh
+      - name: Homologation seed + functional/security/load API gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/ci
+          export NINAERP_HOMOLOGATION_PASSWORD="Hml!${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-Aa9#"
+          dotnet run --project src/NinaERP.API/NinaERP.API.csproj -c Release --no-build -- --seed-homologation
           dotnet run --project src/NinaERP.API/NinaERP.API.csproj -c Release --no-build --urls http://127.0.0.1:7000 > artifacts/ci/api.log 2>&1 &
           api_pid=$!
           trap 'kill $api_pid 2>/dev/null || true' EXIT
+          healthy=0
           for attempt in {1..40}; do
             if curl --fail --silent http://127.0.0.1:7000/health > artifacts/ci/health.json; then
-              cat artifacts/ci/health.json
-              exit 0
+              healthy=1
+              break
             fi
             sleep 1
           done
-          cat artifacts/ci/api.log
-          exit 1
+          if [[ "$healthy" != "1" ]]; then
+            cat artifacts/ci/api.log
+            exit 1
+          fi
+          cat artifacts/ci/health.json
+          # Ordem intencional: o teste de segurança satura o rate limiter de login e roda por último.
+          scripts/functional/api-homologation-smoke.sh
+          python3 scripts/functional/api-transaction-e2e.py
+          python3 scripts/load/api-load-smoke.py
+          scripts/security/api-security-smoke.sh
       - name: Upload backend gate evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,6 +107,9 @@ jobs:
       - name: Install
         working-directory: frontend
         run: npm ci
+      - name: Production dependency security audit
+        working-directory: frontend
+        run: npm audit --omit=dev --audit-level=high
       - name: TypeScript + Vite build
         working-directory: frontend
         run: npm run build
@@ -115,11 +134,26 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Publish first Windows build
+      - name: Publish and compile Windows installer
         shell: pwsh
-        run: ./scripts/windows/Build-FirstWindows.ps1 -Runtime win-x64 -SkipTests
+        run: |
+          choco install innosetup --yes --no-progress
+          $env:Path += ";C:\Program Files (x86)\Inno Setup 6"
+          ./scripts/windows/Build-FirstWindows.ps1 -Runtime win-x64 -BuildInstaller
+      - name: Exercise Authenticode signing pipeline with CI-only certificate
+        shell: pwsh
+        run: |
+          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=Nina ERP CI Test Signing" -CertStoreLocation Cert:\CurrentUser\My
+          try { ./scripts/windows/Sign-Artifacts.ps1 -CertificateThumbprint $cert.Thumbprint -SkipTimestamp } finally { Remove-Item "Cert:\CurrentUser\My\$($cert.Thumbprint)" -Force -ErrorAction SilentlyContinue }
+      - name: Create release integrity manifest and package
+        shell: pwsh
+        run: |
+          python scripts/release/create-manifest.py artifacts/windows --version 0.2.0-hml --channel candidate
+          python scripts/release/package-release.py artifacts/windows --version 0.2.0-hml --output-dir artifacts/release
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ninaerp-windows-win-x64
-          path: artifacts/windows
+          path: |
+            artifacts/windows
+            artifacts/release

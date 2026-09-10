@@ -39,22 +39,21 @@ if ($pgDump) {
     Write-Host "PostgreSQL detectado: $($pgDump.FullName)" -ForegroundColor Green
 } elseif ($InstallPostgreSql) {
     try {
-        Write-Host "Instalando PostgreSQL 16 pelo WinGet..."
-        Install-WingetPackage "PostgreSQL.PostgreSQL.16"
+        Write-Host "Instalando PostgreSQL 17 pelo WinGet..."
+        Install-WingetPackage "PostgreSQL.PostgreSQL.17"
         Write-Host "PostgreSQL instalado. Abra o Server Manager para configurar a conexão." -ForegroundColor Green
     } catch {
         Write-Warning "A instalação automática do PostgreSQL falhou: $($_.Exception.Message)"
-        Write-Warning "Instale PostgreSQL 16 x64 manualmente ou use o instalador offline EDB."
+        Write-Warning "Instale PostgreSQL 17 x64 manualmente ou use o instalador offline EDB."
     }
 } else {
-    Write-Warning "PostgreSQL não encontrado. No servidor, execute novamente com -InstallPostgreSql ou instale PostgreSQL 16 x64 manualmente."
+    Write-Warning "PostgreSQL não encontrado. No servidor, execute novamente com -InstallPostgreSql ou instale PostgreSQL 17 x64 manualmente."
 }
 
 if ($DeveloperMachine) {
-    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
-        Write-Host "Instalando .NET SDK 10..."
-        Install-WingetPackage "Microsoft.DotNet.SDK.10"
-    }
+    $dotnetBootstrap = Join-Path $PSScriptRoot "Install-DotNetSdk.ps1"
+    & $dotnetBootstrap -PersistMachinePath
+    if ($LASTEXITCODE -ne 0) { throw "Falha no bootstrap do SDK .NET 10." }
     if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
         Write-Host "Instalando Node.js LTS..."
         Install-WingetPackage "OpenJS.NodeJS.LTS"

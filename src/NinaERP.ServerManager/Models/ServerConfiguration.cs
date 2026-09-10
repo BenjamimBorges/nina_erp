@@ -65,6 +65,7 @@ public sealed class ServerConfiguration
                 ExpirationMinutes = 480
             },
             Database = new { ApplyMigrationsOnStartup = false },
+            Auth = new { SecureCookie = false },
             Seed = new { DemoData = false },
             Swagger = new { Enabled = false },
             Kestrel = new { Endpoints = new { Http = new { Url = $"http://0.0.0.0:{ApiPort}" } } },

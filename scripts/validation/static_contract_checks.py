@@ -112,6 +112,7 @@ check('CI blocks pending EF model changes', 'has-pending-model-changes' in ci_ga
 check('CI generates idempotent migration script', 'migrations script 0 --idempotent' in ci_gate_text)
 check('CI includes API health smoke test', '/health' in ci_text and 'curl --fail' in ci_text)
 check('CI includes Windows publish gate', 'windows-publish:' in ci_text and 'Build-FirstWindows.ps1' in ci_text)
+check('CI does not enable setup-dotnet cache without NuGet lock files', not ('cache: true' in ci_text and 'actions/setup-dotnet' in ci_text) or any(ROOT.rglob('packages.lock.json')))
 
 print(f'PASS: {len(passes)}')
 for n,d in passes: print(f'  [PASS] {n}' + (f' ({d})' if d else ''))
@@ -244,6 +245,88 @@ if manifest.exists():
 else:
     manifest_errors.append('schema-source.sha256 missing')
 check('EF schema source SHA-256 manifest is current', not manifest_errors, '; '.join(manifest_errors[:20]))
+
+
+# Stages 13-20: homologation, RBAC, security and release readiness.
+auth_controller=(ROOT/'src/NinaERP.API/Controllers/AuthController.cs').read_text()
+user_repo=(ROOT/'src/NinaERP.Infrastructure/Persistence/Repositories/UserRepository.cs').read_text()
+hml=(ROOT/'src/NinaERP.Infrastructure/Persistence/HomologationSeeder.cs').read_text()
+users_controller=(ROOT/'src/NinaERP.API/Controllers/UsersController.cs').read_text()
+program=(ROOT/'src/NinaERP.API/Program.cs').read_text()
+hml_tests=(ROOT/'src/NinaERP.Tests/HomologationFunctionalTests.cs').read_text()
+security_smoke=(ROOT/'scripts/security/api-security-smoke.sh').read_text()
+functional_smoke=(ROOT/'scripts/functional/api-homologation-smoke.sh').read_text()
+
+check('Login contract is tenant-aware by CNPJ', 'LoginRequest(string CompanyCnpj, string Username, string Password)' in auth_controller and 'GetForLoginAsync(request.Username, request.CompanyCnpj' in auth_controller)
+check('Login repository fails closed on ambiguous legacy usernames', '.Take(2)' in user_repo and 'matches.Count == 1 ? matches[0] : null' in user_repo)
+check('Homologation seed is blocked in Production', 'seedHomologationData && app.Environment.IsProduction()' in program and 'bloqueada no ambiente Production' in program)
+check('Homologation password comes from environment', 'NINAERP_HOMOLOGATION_PASSWORD' in hml and 'GetEnvironmentVariable' in hml)
+check('Homologation re-seed refreshes password hash', hml.count('PasswordHash = BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12)') >= 2)
+
+admin_users=re.findall(r'new UserSeed\("([^"]+)",[^\n]+UserRole\.(Admin|Manager|Stock)\)', hml)
+sellers=re.findall(r'new UserSeed\("(vendedor\d+)"[^\n]+UserRole\.Cashier\)', hml)
+check('Homologation contains exactly 3 administrative profiles', len(admin_users)==3 and {r for _,r in admin_users}=={'Admin','Manager','Stock'}, str(admin_users))
+check('Homologation contains exactly 3 sellers', len(sellers)==3 and len(set(sellers))==3, str(sellers))
+
+product_rows=re.findall(r'new\("HML-(\d{3})",\s*"(\d{13})",\s*"([^"]+)",\s*"[^"]+",\s*"[^"]+",\s*"\d+",\s*([0-9.]+)m,\s*([0-9.]+)m\)', hml)
+check('Homologation contains exactly 20 products', len(product_rows)==20, str(len(product_rows)))
+barcodes=[x[1] for x in product_rows]
+def ean13_ok(code):
+    digits=[int(c) for c in code]
+    expected=(10-sum(n*(1 if i%2==0 else 3) for i,n in enumerate(digits[:12]))%10)%10
+    return digits[-1]==expected
+check('All homologation EAN-13 values are unique and valid', len(set(barcodes))==20 and all(ean13_ok(x) for x in barcodes))
+check('All homologation products have sale price above purchase price', bool(product_rows) and all(float(sale)>float(cost) for *_,cost,sale in product_rows))
+check('Homologation creates stock through purchase receipt', 'EnsurePilotPurchaseAsync' in hml and 'new PurchaseService(db)' in hml and 'PurchaseItemInput(p.Id, 100m' in hml and 'OriginType = "HomologationSeed"' not in hml)
+check('Homologation purchase creates 100 units per product', 'new PurchaseItemInput(p.Id, 100m' in hml)
+check('Homologation clients cover CE/SP/PE/MA', all(f'"{uf}"' in hml for uf in ['CE','SP','PE','MA']) and hml.count('new ClientSeed(')==4)
+check('Functional integration tests cover requested homologation mass', all(x in hml_tests for x in ['Assert.Equal(20, summary.Products)','Assert.Equal(4, summary.Clients)','Assert.Equal(3, summary.Sellers)','HML-PO-001','PaymentPending']))
+check('Security integration covers tenant isolation and last-admin protection', 'Tenant_Aware_Login_Repository_Does_Not_Cross_Company_Boundary' in hml_tests and 'User_Administration_Protects_Last_Admin_And_Enforces_Strong_Passwords' in hml_tests)
+check('User administration API is AdminOnly', '[Authorize(Policy = "AdminOnly")]' in users_controller)
+check('HTTP security smoke covers RBAC, injection and auth rate limiting', all(x in security_smoke for x in ['RBAC','SQL injection','rate limiter','X-Content-Type-Options','companyCnpj']))
+check('Functional smoke covers purchase, finance, products, clients and sales', all(x in functional_smoke for x in ['/api/purchases','/api/finance/payables','len(products)==20','len(clients)==4','len(sales)==5']))
+check('CI executes homologation functional/load/security gates', all(x in ci_text for x in ['--seed-homologation','api-homologation-smoke.sh','api-load-smoke.py','api-security-smoke.sh']))
+
+smoke_windows=(ROOT/'scripts/windows/Smoke-Test.ps1').read_text()
+check('Windows smoke uses tenant-aware CNPJ login', 'CompanyCnpj' in smoke_windows and 'companyCnpj = $CompanyCnpj' in smoke_windows)
+
+# Browser authentication hardening (stage 20)
+frontend_auth=(ROOT/'frontend/src/store/auth.ts').read_text()
+frontend_api=(ROOT/'frontend/src/services/api.ts').read_text()
+auth_response=(ROOT/'src/NinaERP.Contracts/Responses/AuthResponse.cs').read_text()
+check('Frontend does not persist JWT in local/session storage', 'localStorage' not in frontend_auth + frontend_api and 'sessionStorage' not in frontend_auth + frontend_api)
+check('Auth response does not expose token', 'Token' not in auth_response and 'token:' not in auth_response.lower())
+check('Session cookie is HttpOnly + SameSite Strict', 'HttpOnly = true' in auth_controller and 'SameSite = SameSiteMode.Strict' in auth_controller)
+check('JWT bearer reads Nina ERP session cookie', 'OnMessageReceived' in program and 'AuthController.SessionCookieName' in program)
+check('Frontend sends credentials with API requests', 'withCredentials: true' in frontend_api)
+anti_csrf=(ROOT/'src/NinaERP.API/Middleware/AntiCsrfMiddleware.cs').read_text()
+security_headers=(ROOT/'src/NinaERP.API/Middleware/SecurityHeadersMiddleware.cs').read_text()
+jwt_generator=(ROOT/'src/NinaERP.Infrastructure/Auth/JwtTokenGenerator.cs').read_text()
+check('Cookie-authenticated writes require anti-CSRF header', 'X-Requested-With' in anti_csrf and 'UseMiddleware<AntiCsrfMiddleware>()' in program)
+check('Login endpoint is protected against login-CSRF', 'isLogin' in anti_csrf and 'X-Requested-With' in anti_csrf and 'IsWebhookExempt' in anti_csrf)
+check('Security headers include CSP', 'Content-Security-Policy' in security_headers)
+check('User changes revoke old sessions through userVersion', 'userVersion' in jwt_generator and 'OnTokenValidated' in program and 'UpdatedAt.Ticks != userVersion' in program)
+check('HTTP security smoke validates session revocation', 'user change/deactivation revokes prior session: PASS' in security_smoke)
+check('Offline/online .NET bootstrap scripts exist', (ROOT/'scripts/windows/Install-DotNetSdk.ps1').exists() and (ROOT/'scripts/dev/ensure-dotnet.sh').exists())
+dotnet_win=(ROOT/'scripts/windows/Install-DotNetSdk.ps1').read_text()
+dotnet_linux=(ROOT/'scripts/dev/ensure-dotnet.sh').read_text()
+build_win=(ROOT/'scripts/windows/Build-FirstWindows.ps1').read_text()
+check('Dotnet bootstrap enforces 10.0.4xx feature band', 'expectedBand' in dotnet_win and 'have_compatible_dotnet' in dotnet_linux and 'requiredBand' in build_win)
+check('HTTPS always forces Secure auth cookie', 'return Request.IsHttps ||' in auth_controller)
+tenant_security_tests=(ROOT/'src/NinaERP.Tests/TenantIsolationSecurityTests.cs').read_text()
+check('Horizontal tenant isolation tests cover client/product sale IDOR', all(x in tenant_security_tests for x in ['Client_Update_Should_Not_Modify_Client_From_Another_Company','Sale_Create_Should_Not_Reference_Product_From_Another_Company','Sale_Create_Should_Not_Reference_Client_From_Another_Company']))
+pilot_script=(ROOT/'scripts/pilot/verify-pilot.sh').read_text()
+check('Pilot preflight includes transactional E2E', 'api-transaction-e2e.py' in pilot_script)
+for rel in ['scripts/windows/Sign-Artifacts.ps1','scripts/windows/Update-NinaERP.ps1','scripts/windows/Rollback-NinaERP.ps1','scripts/release/create-manifest.py','docs/PILOT_RUNBOOK.md','docs/SECURITY_TEST_PLAN.md']:
+    check(f'Stage 13-20 artifact exists: {rel}', (ROOT/rel).exists())
+release_cfg=json.loads((ROOT/'release/version.json').read_text())
+check('Release candidate is not falsely production-approved', release_cfg.get('productionApproved') is False and release_cfg.get('version')=='0.2.0-hml')
+appsettings=json.loads((ROOT/'src/NinaERP.API/appsettings.json').read_text())
+features=appsettings.get('Features',{})
+check('Sensitive expansion features remain disabled by default', all(features.get(k) is False for k in ['Omnichannel','MobileApi','Approvals','Assistant','DistributedScale']))
+installer_text=(ROOT/'installer/NinaERP.Setup/NinaERP.iss').read_text()
+check('Installer display version matches candidate release', '#define MyAppLabel "0.2.0-hml"' in installer_text and 'AppVersion={#MyAppLabel}' in installer_text)
+check('Installer Windows file version is numeric', '#define MyAppVersion "0.2.0"' in installer_text and 'VersionInfoVersion={#MyAppVersion}' in installer_text)
 
 print(f'DEEP PASS TOTAL: {len(passes)}')
 print(f'DEEP FAIL TOTAL: {len(failures)}')
