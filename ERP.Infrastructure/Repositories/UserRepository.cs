@@ -35,6 +35,19 @@ namespace ERP.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
         }
 
+        public async Task<User?> GetByUsernameAndCompanyAsync(string username, int companyId, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Users.Include(x => x.Company)
+                .FirstOrDefaultAsync(x => x.Username == username && x.CompanyId == companyId, cancellationToken);
+        }
+
+        public async Task<User?> GetByCnpjAndUsernameAsync(string cnpj, string normalizedUsername, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Users.Include(x => x.Company)
+                .FirstOrDefaultAsync(x => x.Company!.TaxId == cnpj && x.Company.IsActive &&
+                    x.NormalizedUsername == normalizedUsername && x.IsActive, cancellationToken);
+        }
+
         public void Remove(User entity)
         {
             _dbContext.Users.Remove(entity);

@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using ERP.Infrastructure.Data;
 
 #nullable disable
 
 namespace ERP.Infrastructure.Data.Migrations
 {
+    [DbContext(typeof(ApplicationDbContext))]
+    [Migration("20261112120000_Dev001AuthPersistence")]
     public partial class Dev001AuthPersistence : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
