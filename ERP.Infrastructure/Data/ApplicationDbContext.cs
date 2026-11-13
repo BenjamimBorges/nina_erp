@@ -45,6 +45,7 @@ namespace ERP.Infrastructure.Data
             {
                 entity.HasKey(x => x.Id);
                 entity.Property(x => x.TokenHash).IsRequired().HasMaxLength(128);
+                entity.Property(x => x.SessionVersion).IsRequired();
                 entity.Property(x => x.RevocationReason).HasMaxLength(200);
                 entity.HasIndex(x => x.TokenHash).IsUnique();
                 entity.HasIndex(x => new { x.CompanyId, x.RevokedAt, x.AbsoluteExpiresAt });

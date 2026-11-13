@@ -13,13 +13,15 @@ using Microsoft.AspNetCore.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddDataProtection();
+builder.Services.AddSingleton<CsrfTokenService>();
 var webOrigin = builder.Configuration["Cors:Origin"];
 if (!string.IsNullOrWhiteSpace(webOrigin))
 {
     builder.Services.AddCors(options => options.AddPolicy("Web", policy => policy
         .WithOrigins(webOrigin)
-        .AllowAnyHeader()
-        .AllowAnyMethod()
+        .WithHeaders("Content-Type", CsrfMiddleware.HeaderName)
+        .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         .AllowCredentials()));
 }
 builder.Services.AddRateLimiter(options =>

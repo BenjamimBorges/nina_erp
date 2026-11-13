@@ -22,6 +22,7 @@ public sealed class SessionService : ISessionService
         _db.UserSessions.Add(new UserSession
         {
             Id = Guid.NewGuid(), UserId = user.Id, CompanyId = user.CompanyId,
+            SessionVersion = user.SessionVersion,
             TokenHash = Hash(rawToken), CreatedAt = now, LastActivityAt = now,
             AbsoluteExpiresAt = now.Add(AbsoluteLifetime)
         });
@@ -33,7 +34,9 @@ public sealed class SessionService : ISessionService
     {
         var session = await _db.UserSessions.Include(x => x.User).ThenInclude(x => x!.Company)
             .SingleOrDefaultAsync(x => x.TokenHash == Hash(rawToken), cancellationToken);
-        if (session?.User is null || session.RevokedAt is not null || !session.User.IsActive || session.User.Company?.IsActive != true)
+        if (session?.User is null || session.RevokedAt is not null || !session.User.IsActive ||
+            session.User.Company?.IsActive != true || session.CompanyId != session.User.CompanyId ||
+            session.SessionVersion != session.User.SessionVersion)
             return null;
 
         var now = DateTime.UtcNow;

@@ -145,6 +145,9 @@ namespace ERP.Infrastructure.Data.Migrations
                     b.Property<DateTime?>("RevokedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("SessionVersion")
+                        .HasColumnType("integer");
+
                     b.Property<string>("TokenHash")
                         .IsRequired()
                         .HasMaxLength(128)

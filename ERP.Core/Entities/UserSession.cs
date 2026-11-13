@@ -5,6 +5,7 @@ namespace ERP.Core.Entities
         public Guid Id { get; set; }
         public int UserId { get; set; }
         public int CompanyId { get; set; }
+        public int SessionVersion { get; set; }
         public string TokenHash { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime LastActivityAt { get; set; } = DateTime.UtcNow;

@@ -3,7 +3,6 @@ using ERP.Shared.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
-using System.Security.Cryptography;
 using System.Security.Claims;
 
 namespace ERP.API.Controllers
@@ -39,7 +38,7 @@ namespace ERP.API.Controllers
         [HttpGet("csrf")]
         public IActionResult Csrf()
         {
-            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            var token = HttpContext.RequestServices.GetRequiredService<CsrfTokenService>().Create();
             Response.Cookies.Append(CsrfMiddleware.CookieName, token, new CookieOptions
             {
                 HttpOnly = false, Secure = true, SameSite = SameSiteMode.Lax,
@@ -48,6 +47,7 @@ namespace ERP.API.Controllers
             return Ok(new { token });
         }
 
+        [Authorize(Policy = "User")]
         [HttpGet("me")]
         public ActionResult<UserDto> Me() => Ok(new UserDto
         {
@@ -58,6 +58,11 @@ namespace ERP.API.Controllers
             CompanyName = User.FindFirstValue("companyName") ?? string.Empty
         });
 
+        [Authorize(Policy = "Admin")]
+        [HttpGet("admin-check")]
+        public IActionResult AdminCheck() => Ok(new { authorized = true });
+
+        [AllowAnonymous]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromServices] ERP.Core.Services.ISessionService sessions, CancellationToken cancellationToken)
         {

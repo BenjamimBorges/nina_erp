@@ -9,7 +9,7 @@ namespace ERP.API;
 public sealed class CookieSessionAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     public new const string Scheme = "NinaSession";
-    public const string CookieName = "NinaERP.Session";
+    public const string CookieName = "__Host-NinaERP.Session";
     private readonly ISessionService _sessions;
 
     public CookieSessionAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,

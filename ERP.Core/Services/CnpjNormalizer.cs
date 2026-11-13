@@ -11,11 +11,14 @@ public static class CnpjNormalizer
         foreach (var character in value)
         {
             if (character is >= '0' and <= '9') digits.Append(character);
+            else if (character is >= 'a' and <= 'z') digits.Append(char.ToUpperInvariant(character));
+            else if (character is >= 'A' and <= 'Z') digits.Append(character);
             else if (!char.IsWhiteSpace(character) && character is not '.' and not '/' and not '-') return null;
         }
 
         var normalized = digits.ToString();
-        if (normalized.Length != 14 || !normalized.Any(c => c != normalized[0])) return null;
+        if (normalized.Length != 14 || !normalized[..12].Any(c => c != normalized[0]) ||
+            normalized[..12].Any(c => c is < '0' or > 'Z' || (c > '9' && c < 'A'))) return null;
         if (CheckDigit(normalized[..12], 5) != normalized[12] - '0' ||
             CheckDigit(normalized[..13], 6) != normalized[13] - '0') return null;
         return normalized;

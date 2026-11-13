@@ -29,11 +29,21 @@ public sealed class UserSecurityService : IUserSecurityService
     {
         var user = await _db.Users.SingleOrDefaultAsync(x => x.Id == userId, cancellationToken);
         if (user is null) return false;
-        update(user);
-        user.SessionVersion++;
-        user.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync(cancellationToken);
-        await _sessions.RevokeAllForUserAsync(userId, reason, cancellationToken);
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            update(user);
+            user.SessionVersion++;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(cancellationToken);
+            await _sessions.RevokeAllForUserAsync(userId, reason, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(CancellationToken.None);
+            throw;
+        }
         return true;
     }
 }

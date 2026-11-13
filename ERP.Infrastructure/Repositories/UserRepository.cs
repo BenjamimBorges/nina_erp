@@ -21,18 +21,17 @@ namespace ERP.Infrastructure.Repositories
 
         public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            return await _dbContext.Users.Include(x => x.Company).ToListAsync(cancellationToken);
+            throw new InvalidOperationException("Tenant scope is required for user queries.");
         }
 
         public async Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            return await _dbContext.Users.Include(x => x.Company).FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            throw new InvalidOperationException("Tenant scope is required for user queries.");
         }
 
         public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
         {
-            return await _dbContext.Users.Include(x => x.Company)
-                .FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
+            throw new InvalidOperationException("Tenant scope is required for user queries.");
         }
 
         public async Task<User?> GetByUsernameAndCompanyAsync(string username, int companyId, CancellationToken cancellationToken = default)
@@ -47,6 +46,14 @@ namespace ERP.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Company!.TaxId == cnpj && x.Company.IsActive &&
                     x.NormalizedUsername == normalizedUsername && x.IsActive, cancellationToken);
         }
+
+        public async Task<IReadOnlyList<User>> GetAllForCompanyAsync(int companyId, CancellationToken cancellationToken = default) =>
+            await _dbContext.Users.Include(x => x.Company)
+                .Where(x => x.CompanyId == companyId).ToListAsync(cancellationToken);
+
+        public async Task<User?> GetByIdForCompanyAsync(int id, int companyId, CancellationToken cancellationToken = default) =>
+            await _dbContext.Users.Include(x => x.Company)
+                .FirstOrDefaultAsync(x => x.Id == id && x.CompanyId == companyId, cancellationToken);
 
         public void Remove(User entity)
         {

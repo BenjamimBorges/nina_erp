@@ -20,6 +20,12 @@ public sealed class AuthServiceTests
     }
 
     [Fact]
+    public void Cnpj_normalizer_accepts_official_alphanumeric_shape()
+    {
+        ERP.Core.Services.CnpjNormalizer.Normalize("00.000.000/E08G-12").Should().Be("00000000E08G12");
+    }
+
+    [Fact]
     public async Task Authenticate_verifies_hash_and_creates_server_session()
     {
         var user = User("correct-password");
@@ -109,6 +115,12 @@ public sealed class AuthServiceTests
 
         public Task<User?> GetByCnpjAndUsernameAsync(string cnpj, string normalizedUsername, CancellationToken cancellationToken = default) =>
             Task.FromResult<User?>(cnpj == user.Company?.TaxId && normalizedUsername == user.NormalizedUsername ? user : null);
+
+        public Task<IReadOnlyList<User>> GetAllForCompanyAsync(int companyId, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<User>>(companyId == user.CompanyId ? new[] { user } : Array.Empty<User>());
+
+        public Task<User?> GetByIdForCompanyAsync(int id, int companyId, CancellationToken cancellationToken = default) =>
+            Task.FromResult<User?>(id == user.Id && companyId == user.CompanyId ? user : null);
 
         public Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default) =>
             Task.FromResult<User?>(id == user.Id ? user : null);
