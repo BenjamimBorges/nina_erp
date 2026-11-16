@@ -123,9 +123,9 @@ function RegistrationPage() {
     const cnpj = form.cnpj.replace(/[^0-9A-Za-z]/g, '').toUpperCase();
     const passwordIsValid = form.password.length >= 6;
 
-    if (form.companyName.trim().length < 2 || form.adminFullName.trim().length < 2 || cnpj.length !== 14 ||
+    if (form.companyName.trim().length < 2 || form.adminFullName.trim().length < 1 || cnpj.length !== 14 ||
       !/^[A-Za-z0-9._-]{3,100}$/.test(form.adminUsername.trim()) || !passwordIsValid || form.password !== form.confirmPassword) {
-      setError('Revise os dados: CNPJ válido, usuário e senha de ao menos 6 caracteres com confirmação são obrigatórios.');
+      setError('Revise os dados: CNPJ válido, nome, usuário e senha de ao menos 6 caracteres com confirmação são obrigatórios.');
       return;
     }
 
