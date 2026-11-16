@@ -88,15 +88,13 @@ namespace ERP.Infrastructure.Services
             if (fullName.Length is < 2 or > 200)
                 errors["adminFullName"] = ["Informe o nome do administrador entre 2 e 200 caracteres."];
             if (!IsStrongPassword(password))
-                errors["password"] = ["A senha deve ter ao menos 12 caracteres, maiúscula, minúscula, número e símbolo."];
+                errors["password"] = ["A senha deve ter no mínimo 5 caracteres."];
             if (!string.Equals(password, request.ConfirmPassword ?? string.Empty, StringComparison.Ordinal))
                 errors["confirmPassword"] = ["A confirmação da senha não confere."];
 
             return errors;
         }
 
-        private static bool IsStrongPassword(string password) =>
-            password.Length >= 12 && password.Any(char.IsUpper) && password.Any(char.IsLower) &&
-            password.Any(char.IsDigit) && password.Any(ch => !char.IsLetterOrDigit(ch));
+        private static bool IsStrongPassword(string password) => password.Length >= 5;
     }
 }
