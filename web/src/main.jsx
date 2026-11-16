@@ -1,14 +1,15 @@
-import { StrictMode, createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { Component, StrictMode, createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import './styles.css';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const SessionContext = createContext(null);
 
-function ApiError(message, status) {
+function ApiError(message, status, details) {
   const error = new Error(message);
   error.status = status;
+  error.details = details;
   return error;
 }
 
@@ -24,13 +25,14 @@ async function request(path, { csrfToken, method = 'GET', body } = {}) {
     credentials: 'include'
   });
 
-  if (response.status === 401) throw ApiError('UNAUTHENTICATED', response.status);
-  if (response.status === 403) throw ApiError('FORBIDDEN', response.status);
-  if (!response.ok) throw ApiError('REQUEST_FAILED', response.status);
   if (response.status === 204) return undefined;
 
   const contentType = response.headers.get('content-type') || '';
-  return contentType.includes('application/json') ? response.json() : undefined;
+  const payload = contentType.includes('application/json') ? await response.json() : undefined;
+  if (response.status === 401) throw ApiError('UNAUTHENTICATED', response.status, payload);
+  if (response.status === 403) throw ApiError('FORBIDDEN', response.status, payload);
+  if (!response.ok) throw ApiError('REQUEST_FAILED', response.status, payload);
+  return payload;
 }
 
 async function getCsrfToken() {
@@ -102,7 +104,92 @@ function PageLoading() {
 function ProtectedRoute({ children }) {
   const { status } = useSession();
   if (status === 'loading') return <PageLoading />;
-  return status === 'authenticated' ? children : <Navigate to="/login" replace />;
+  return status === 'authenticated' ? children : <Navigate to="/cadastro" replace />;
+}
+
+function RegistrationPage() {
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    companyName: '', cnpj: '', adminFullName: '', adminUsername: '', password: '', confirmPassword: ''
+  });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const update = (field) => (event) => setForm({ ...form, [field]: event.target.value });
+
+  const submit = async (event) => {
+    event.preventDefault();
+    const cnpj = form.cnpj.replace(/[^0-9A-Za-z]/g, '').toUpperCase();
+    const passwordIsValid = form.password.length >= 6;
+
+    if (form.companyName.trim().length < 2 || form.adminFullName.trim().length < 2 || cnpj.length !== 14 ||
+      !/^[A-Za-z0-9._-]{3,100}$/.test(form.adminUsername.trim()) || !passwordIsValid || form.password !== form.confirmPassword) {
+      setError('Revise os dados: CNPJ válido, usuário e senha de ao menos 6 caracteres com confirmação são obrigatórios.');
+      return;
+    }
+
+    setSubmitting(true);
+    setError('');
+    try {
+      const csrfToken = await getCsrfToken();
+      const result = await request('/api/auth/register', {
+        method: 'POST',
+        csrfToken,
+        body: {
+          companyName: form.companyName.trim(),
+          cnpj,
+          adminUsername: form.adminUsername.trim(),
+          adminFullName: form.adminFullName.trim(),
+          password: form.password,
+          confirmPassword: form.confirmPassword
+        }
+      });
+      setSuccess(result?.message || 'Empresa cadastrada com sucesso. Faça login para continuar.');
+    } catch (requestError) {
+      if (requestError.status === 409) setError('Não foi possível concluir o cadastro. Revise os dados informados.');
+      else if (requestError.status === 429) setError('Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.');
+      else if (requestError.status === 400) setError('Revise os dados do cadastro e tente novamente.');
+      else setError('Não foi possível cadastrar a empresa agora. Tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (success) {
+    return <main className="login-shell">
+      <section className="card" aria-live="polite">
+        <p className="eyebrow">Nina ERP</p>
+        <h1>Cadastro concluído</h1>
+        <p className="muted">{success}</p>
+        <button type="button" onClick={() => navigate('/login')}>Ir para acesso</button>
+      </section>
+    </main>;
+  }
+
+  return <main className="login-shell">
+    <form className="card registration-card" onSubmit={submit} noValidate>
+      <p className="eyebrow">Nina ERP</p>
+      <h1>Cadastre sua empresa</h1>
+      <p className="muted">Crie a empresa e a primeira conta administradora.</p>
+      {error && <p className="message" role="alert">{error}</p>}
+      <label htmlFor="companyName">Nome da empresa</label>
+      <input id="companyName" autoComplete="organization" value={form.companyName} onChange={update('companyName')} required />
+      <label htmlFor="registrationCnpj">CNPJ</label>
+      <input id="registrationCnpj" inputMode="text" autoComplete="organization" value={form.cnpj} onChange={update('cnpj')} required />
+      <label htmlFor="adminFullName">Nome do administrador</label>
+      <input id="adminFullName" autoComplete="name" value={form.adminFullName} onChange={update('adminFullName')} required />
+      <label htmlFor="adminUsername">Usuário administrador</label>
+      <input id="adminUsername" autoComplete="username" value={form.adminUsername} onChange={update('adminUsername')} required />
+      <label htmlFor="registrationPassword">Senha</label>
+      <input id="registrationPassword" type="password" autoComplete="new-password" value={form.password} onChange={update('password')} required />
+      <p className="hint">Use ao menos 6 caracteres.</p>
+      <label htmlFor="confirmPassword">Confirmar senha</label>
+      <input id="confirmPassword" type="password" autoComplete="new-password" value={form.confirmPassword} onChange={update('confirmPassword')} required />
+      <button type="submit" disabled={submitting}>{submitting ? 'Cadastrando…' : 'Cadastrar empresa'}</button>
+      <p className="muted account-link">Já possui cadastro? <Link to="/login">Acessar empresa</Link></p>
+    </form>
+  </main>;
 }
 
 function LoginPage() {
@@ -153,6 +240,7 @@ function LoginPage() {
       <input id="password" type="password" autoComplete="current-password" value={form.password}
         onChange={(event) => setForm({ ...form, password: event.target.value })} required />
       <button type="submit" disabled={submitting}>{submitting ? 'Entrando…' : 'Entrar'}</button>
+      <p className="muted account-link">Ainda não possui empresa? <Link to="/cadastro">Cadastre-se</Link></p>
     </form>
   </main>;
 }
@@ -189,13 +277,45 @@ function DashboardPage() {
 
 function App() {
   return <SessionProvider><BrowserRouter><Routes>
+    <Route path="/cadastro" element={<RegistrationPage />} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes></BrowserRouter></SessionProvider>;
 }
 
-createRoot(document.getElementById('root')).render(<StrictMode><App /></StrictMode>);
+class ApplicationErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    if (this.state.failed) {
+      return <main className="centered" role="alert">
+        <section className="card">
+          <p className="eyebrow">Nina ERP</p>
+          <h1>Não foi possível abrir a aplicação</h1>
+          <p className="muted">Atualize a página. Se o problema continuar, informe este erro ao suporte.</p>
+          <button type="button" onClick={() => window.location.reload()}>Atualizar página</button>
+        </section>
+      </main>;
+    }
+
+    return this.props.children;
+  }
+}
+
+const root = createRoot(document.getElementById('root'));
+window.__ninaReactMounted?.();
+
+root.render(
+  <StrictMode><ApplicationErrorBoundary><App /></ApplicationErrorBoundary></StrictMode>
+);
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
