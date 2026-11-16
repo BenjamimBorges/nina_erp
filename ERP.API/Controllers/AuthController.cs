@@ -12,10 +12,33 @@ namespace ERP.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ICompanyRegistrationService _registrationService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ICompanyRegistrationService registrationService)
         {
             _authService = authService;
+            _registrationService = registrationService;
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting(ERP.API.RegistrationRateLimitPolicy.Name)]
+        [HttpPost("register")]
+        [ProducesResponseType(typeof(CompanyRegistrationResponseDto), StatusCodes.Status201Created)]
+        public async Task<IActionResult> Register(
+            [FromBody] CompanyRegistrationRequestDto? request,
+            CancellationToken cancellationToken)
+        {
+            if (request is null)
+                return BadRequest(new { success = false, message = "Informe os dados do cadastro." });
+
+            var result = await _registrationService.RegisterAsync(request, cancellationToken);
+            if (result.Conflict)
+                return Conflict(new CompanyRegistrationResponseDto { Success = false, Message = result.Message });
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message, errors = result.Errors });
+
+            return StatusCode(StatusCodes.Status201Created,
+                new CompanyRegistrationResponseDto { Success = true, Message = result.Message });
         }
 
         [AllowAnonymous]

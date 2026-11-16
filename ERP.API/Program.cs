@@ -44,6 +44,16 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0,
                 AutoReplenishment = true
             }));
+    options.AddPolicy(RegistrationRateLimitPolicy.Name, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            RegistrationRateLimitPolicy.PartitionKey(httpContext),
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = RegistrationRateLimitPolicy.PermitLimit,
+                Window = RegistrationRateLimitPolicy.Window,
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -78,6 +88,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<IUserSecurityService, UserSecurityService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICompanyRegistrationService, CompanyRegistrationService>();
 
 builder.Services.AddAuthentication(CookieSessionAuthenticationHandler.Scheme)
     .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions,
