@@ -85,8 +85,8 @@ namespace ERP.Infrastructure.Services
                 errors["cnpj"] = ["Informe um CNPJ válido, inclusive no formato alfanumérico oficial."];
             if (!UsernamePattern.IsMatch(username))
                 errors["adminUsername"] = ["Use de 3 a 100 caracteres: letras, números, ponto, hífen ou sublinhado."];
-            if (fullName.Length is < 2 or > 200)
-                errors["adminFullName"] = ["Informe o nome do administrador entre 2 e 200 caracteres."];
+            if (fullName.Length is < 1 or > 200)
+                errors["adminFullName"] = ["Informe o nome do administrador entre 1 e 200 caracteres."];
             if (!IsStrongPassword(password))
                 errors["password"] = ["A senha deve ter no mínimo 6 caracteres."];
             if (!string.Equals(password, request.ConfirmPassword ?? string.Empty, StringComparison.Ordinal))
