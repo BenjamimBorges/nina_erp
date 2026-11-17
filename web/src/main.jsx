@@ -123,9 +123,28 @@ function RegistrationPage() {
     const cnpj = form.cnpj.replace(/[^0-9A-Za-z]/g, '').toUpperCase();
     const passwordIsValid = form.password.length >= 6;
 
-    if (form.companyName.trim().length < 2 || form.adminFullName.trim().length < 1 || cnpj.length !== 14 ||
-      !/^[A-Za-z0-9._-]{3,100}$/.test(form.adminUsername.trim()) || !passwordIsValid || form.password !== form.confirmPassword) {
-      setError('Revise os dados: CNPJ válido, nome, usuário e senha de ao menos 6 caracteres com confirmação são obrigatórios.');
+    if (form.companyName.trim().length < 2) {
+      setError('Informe o nome da empresa com ao menos 2 caracteres.');
+      return;
+    }
+    if (form.adminFullName.trim().length < 2) {
+      setError('Informe o nome do administrador com ao menos 2 caracteres.');
+      return;
+    }
+    if (cnpj.length !== 14) {
+      setError('Informe um CNPJ com 14 caracteres, sem contar a pontuação.');
+      return;
+    }
+    if (!/^[A-Za-z0-9._-]{3,100}$/.test(form.adminUsername.trim())) {
+      setError('O usuário deve ter entre 3 e 100 caracteres permitidos.');
+      return;
+    }
+    if (!passwordIsValid) {
+      setError('A senha deve ter ao menos 6 caracteres.');
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setError('A confirmação da senha não confere.');
       return;
     }
 
@@ -178,7 +197,8 @@ function RegistrationPage() {
       <label htmlFor="registrationCnpj">CNPJ</label>
       <input id="registrationCnpj" inputMode="text" autoComplete="organization" value={form.cnpj} onChange={update('cnpj')} required />
       <label htmlFor="adminFullName">Nome do administrador</label>
-      <input id="adminFullName" autoComplete="name" value={form.adminFullName} onChange={update('adminFullName')} required />
+      <input id="adminFullName" autoComplete="name" minLength="2" value={form.adminFullName} onChange={update('adminFullName')} required />
+      <p className="hint">Use ao menos 2 caracteres.</p>
       <label htmlFor="adminUsername">Usuário administrador</label>
       <input id="adminUsername" autoComplete="username" value={form.adminUsername} onChange={update('adminUsername')} required />
       <label htmlFor="registrationPassword">Senha</label>
