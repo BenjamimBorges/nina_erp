@@ -1,6 +1,8 @@
 using ERP.Core.Services;
 using ERP.Shared.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ERP.API.Controllers
 {
@@ -15,6 +17,8 @@ namespace ERP.API.Controllers
             _authService = authService;
         }
 
+        [AllowAnonymous]
+        [EnableRateLimiting(ERP.API.LoginRateLimitPolicy.Name)]
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
         {
