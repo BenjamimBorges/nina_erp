@@ -1,4 +1,3 @@
-using ERP.Core.Entities;
 using ERP.Core.Interfaces;
 using ERP.Core.Services;
 using ERP.Shared.Dtos;
@@ -10,45 +9,33 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace ERP.Infrastructure.Services
 {
-    public class AuthService : IAuthService
+    public sealed class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IConfiguration _configuration;
+        private readonly ISessionService _sessions;
 
-        public AuthService(IUserRepository userRepository, IConfiguration configuration)
+        public AuthService(IUserRepository userRepository, ISessionService sessions)
         {
             _userRepository = userRepository;
-            _configuration = configuration;
+            _sessions = sessions;
         }
 
         public async Task<LoginResponseDto> AuthenticateAsync(LoginRequestDto request, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password) || request.CompanyId <= 0)
-            {
-                return new LoginResponseDto { Success = false, Message = "Usuário, senha ou empresa inválidos." };
-            }
+            var cnpj = CnpjNormalizer.Normalize(request.Cnpj);
+            var username = request.Username.Trim().ToUpperInvariant();
+            if (cnpj is null || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(request.Password))
+                return Invalid();
 
-            var user = await _userRepository.GetByUsernameAndCompanyAsync(
-                request.Username.Trim(), request.CompanyId, cancellationToken);
-            if (user == null)
-            {
-                return new LoginResponseDto { Success = false, Message = "Usuário ou senha inválidos." };
-            }
-
-            var passwordValid = false;
+            var user = await _userRepository.GetByCnpjAndUsernameAsync(cnpj, username, cancellationToken);
+            if (user is null) return Invalid();
             try
             {
-                passwordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+                if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash)) return Invalid();
             }
-            catch (ArgumentException)
-            {
-                // Hashes legados inválidos falham como credencial inválida.
-            }
+            catch (ArgumentException) { return Invalid(); }
 
-            if (!passwordValid)
-            {
-                return new LoginResponseDto { Success = false, Message = "Usuário ou senha inválidos." };
-            }
+            var session = await _sessions.CreateAsync(user, cancellationToken);
 
             var jwtKey = _configuration["Jwt:Key"];
             if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
@@ -92,8 +79,14 @@ namespace ERP.Infrastructure.Services
                     Role = user.Role.ToString(),
                     CompanyName = user.Company?.Name ?? string.Empty
                 },
-                Token = new JwtSecurityTokenHandler().WriteToken(token)
+                SessionToken = session.RawToken
             };
         }
+
+        private static LoginResponseDto Invalid() => new()
+        {
+            Success = false,
+            Message = "CNPJ, usuário ou senha inválidos."
+        };
     }
 }

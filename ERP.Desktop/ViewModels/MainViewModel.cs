@@ -21,6 +21,16 @@ namespace ERP.Desktop.ViewModels
             {
                 _companyId = value;
                 OnPropertyChanged(nameof(CompanyId));
+        private string _cnpj = string.Empty;
+        private string _statusMessage = string.Empty;
+
+        public string Cnpj
+        {
+            get => _cnpj;
+            set
+            {
+                _cnpj = value;
+                OnPropertyChanged(nameof(Cnpj));
             }
         }
 
@@ -59,6 +69,9 @@ namespace ERP.Desktop.ViewModels
             if (!int.TryParse(CompanyId, NumberStyles.None, CultureInfo.InvariantCulture, out var companyId) || companyId <= 0)
             {
                 StatusMessage = "Informe o código válido da empresa.";
+            if (string.IsNullOrWhiteSpace(Cnpj))
+            {
+                StatusMessage = "Informe um CNPJ válido da empresa.";
                 return;
             }
 
@@ -69,7 +82,7 @@ namespace ERP.Desktop.ViewModels
                 {
                     Username = Username,
                     Password = Password,
-                    CompanyId = companyId
+                    Cnpj = Cnpj
                 };
                 var response = await client.PostAsJsonAsync("api/auth/login", request);
                 var result = await response.Content.ReadFromJsonAsync<LoginResponseDto>();

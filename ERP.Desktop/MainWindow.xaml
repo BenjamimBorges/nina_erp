@@ -27,6 +27,10 @@
             <TextBox Text="{Binding CompanyId, UpdateSourceTrigger=PropertyChanged}"
                     Width="400"
                     MaxLength="10"/>
+            <TextBlock Text="CNPJ da empresa"/>
+            <TextBox Text="{Binding Cnpj, UpdateSourceTrigger=PropertyChanged}"
+                    Width="400"
+                    MaxLength="18"/>
             <TextBlock Text="Usuário"/>
             <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
                     Width="400"/>
