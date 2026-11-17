@@ -1,14 +1,27 @@
 using ERP.Shared.Dtos;
 using System.ComponentModel;
+using System.Net.Http;
 using System.Net.Http.Json;
 
 namespace ERP.Desktop.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        private const string DefaultApiBaseUrl = "https://localhost:7029/";
         private string _username = string.Empty;
         private string _password = string.Empty;
+        private string _cnpj = string.Empty;
         private string _statusMessage = string.Empty;
+
+        public string Cnpj
+        {
+            get => _cnpj;
+            set
+            {
+                _cnpj = value;
+                OnPropertyChanged(nameof(Cnpj));
+            }
+        }
 
         public string Username
         {
@@ -42,10 +55,21 @@ namespace ERP.Desktop.ViewModels
 
         public async Task LoginAsync()
         {
+            if (string.IsNullOrWhiteSpace(Cnpj))
+            {
+                StatusMessage = "Informe um CNPJ válido da empresa.";
+                return;
+            }
+
             try
             {
-                using var client = new HttpClient { BaseAddress = new Uri("https://localhost:7029/") };
-                var request = new LoginRequestDto { Username = Username, Password = Password };
+                using var client = new HttpClient { BaseAddress = ResolveApiBaseAddress() };
+                var request = new LoginRequestDto
+                {
+                    Username = Username,
+                    Password = Password,
+                    Cnpj = Cnpj
+                };
                 var response = await client.PostAsJsonAsync("api/auth/login", request);
                 var result = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
 
@@ -62,6 +86,20 @@ namespace ERP.Desktop.ViewModels
             {
                 StatusMessage = $"Erro de conexão: {ex.Message}";
             }
+        }
+
+        private static Uri ResolveApiBaseAddress()
+        {
+            var configuredUrl = Environment.GetEnvironmentVariable("NINAERP_API_BASE_URL");
+            var rawUrl = string.IsNullOrWhiteSpace(configuredUrl) ? DefaultApiBaseUrl : configuredUrl.Trim();
+
+            if (!Uri.TryCreate(rawUrl, UriKind.Absolute, out var uri) ||
+                !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+                !string.IsNullOrEmpty(uri.UserInfo))
+                throw new InvalidOperationException(
+                    "NINAERP_API_BASE_URL deve ser uma URL HTTPS absoluta sem credenciais.");
+
+            return new Uri(uri.ToString().EndsWith('/') ? uri.ToString() : $"{uri}/");
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
