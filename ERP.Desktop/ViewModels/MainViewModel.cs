@@ -2,6 +2,7 @@ using ERP.Shared.Dtos;
 using System.ComponentModel;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Globalization;
 
 namespace ERP.Desktop.ViewModels
 {
@@ -10,6 +11,16 @@ namespace ERP.Desktop.ViewModels
         private const string DefaultApiBaseUrl = "https://localhost:7029/";
         private string _username = string.Empty;
         private string _password = string.Empty;
+        private string _companyId = string.Empty;
+        private string _statusMessage = string.Empty;
+
+        public string CompanyId
+        {
+            get => _companyId;
+            set
+            {
+                _companyId = value;
+                OnPropertyChanged(nameof(CompanyId));
         private string _cnpj = string.Empty;
         private string _statusMessage = string.Empty;
 
@@ -55,6 +66,9 @@ namespace ERP.Desktop.ViewModels
 
         public async Task LoginAsync()
         {
+            if (!int.TryParse(CompanyId, NumberStyles.None, CultureInfo.InvariantCulture, out var companyId) || companyId <= 0)
+            {
+                StatusMessage = "Informe o código válido da empresa.";
             if (string.IsNullOrWhiteSpace(Cnpj))
             {
                 StatusMessage = "Informe um CNPJ válido da empresa.";

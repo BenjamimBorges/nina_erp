@@ -23,6 +23,10 @@
 
         <StackPanel Grid.Row="2"
                 Orientation="Vertical">
+            <TextBlock Text="Código da empresa"/>
+            <TextBox Text="{Binding CompanyId, UpdateSourceTrigger=PropertyChanged}"
+                    Width="400"
+                    MaxLength="10"/>
             <TextBlock Text="CNPJ da empresa"/>
             <TextBox Text="{Binding Cnpj, UpdateSourceTrigger=PropertyChanged}"
                     Width="400"

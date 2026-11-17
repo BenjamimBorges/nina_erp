@@ -83,6 +83,27 @@ if (!builder.Environment.IsDevelopment())
     }
 }
 
+var configuredConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!builder.Environment.IsDevelopment())
+{
+    if (string.IsNullOrWhiteSpace(configuredConnection))
+        throw new InvalidOperationException("Production exige ConnectionStrings:DefaultConnection.");
+
+    try
+    {
+        var connection = new NpgsqlConnectionStringBuilder(configuredConnection);
+        if (string.IsNullOrWhiteSpace(connection.Password) ||
+            string.Equals(connection.Password, "erp_password", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(connection.Password, "password", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(connection.Password, "CHANGE_ME", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Production não pode usar senha PostgreSQL ausente ou de exemplo.");
+    }
+    catch (ArgumentException exception)
+    {
+        throw new InvalidOperationException("ConnectionStrings:DefaultConnection inválida.", exception);
+    }
+}
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ISessionService, SessionService>();
@@ -98,6 +119,38 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
     options.AddPolicy("User", policy => policy.RequireRole("Admin", "User"));
+    options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+    throw new InvalidOperationException("Jwt:Key deve possuir ao menos 32 caracteres.");
+
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+if (string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
+    throw new InvalidOperationException("Jwt:Issuer e Jwt:Audience devem estar configurados.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
     options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
