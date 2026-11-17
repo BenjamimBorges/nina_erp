@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#172033" />
+    <meta name="description" content="Nina ERP para gestão empresarial." />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/nina-erp-icon.svg" type="image/svg+xml" />
+    <title>Nina ERP</title>
+  </head>
+  <body>
+    <div id="root"><main class="centered"><p>Carregando Nina ERP…</p></main></div>
+    <script>
+      (() => {
+        const root = document.getElementById('root');
+        let mounted = false;
+
+        const showStartupFailure = () => {
+          if (mounted) return;
+          root.innerHTML = '<main class="centered" role="alert"><section class="card"><p class="eyebrow">Nina ERP</p><h1>Não foi possível iniciar a interface</h1><p class="muted">Atualize a página. Se persistir, informe que a inicialização do módulo falhou.</p></section></main>';
+        };
+
+        window.__ninaReactMounted = () => { mounted = true; };
+        window.__ninaReactStartupFailure = showStartupFailure;
+        window.addEventListener('error', showStartupFailure, true);
+        window.addEventListener('unhandledrejection', showStartupFailure);
+        window.setTimeout(showStartupFailure, 10000);
+      })();
+    </script>
+    <script type="module" src="/src/main.jsx?v=dev001-bootstrap-2" onerror="window.__ninaReactStartupFailure()"></script>
+  </body>
+</html>

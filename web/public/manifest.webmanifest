@@ -1,0 +1,18 @@
+{
+  "name": "Nina ERP",
+  "short_name": "Nina ERP",
+  "description": "Gestão empresarial Nina ERP.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#172033",
+  "icons": [
+    {
+      "src": "/nina-erp-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

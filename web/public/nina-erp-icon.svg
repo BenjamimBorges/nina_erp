@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title>Nina ERP</title>
+  <rect width="512" height="512" rx="104" fill="#172033"/>
+  <path d="M124 364V148h64l136 130V148h64v216h-62L188 234v130z" fill="#fff"/>
+  <circle cx="394" cy="126" r="32" fill="#51d4b4"/>
+</svg>
